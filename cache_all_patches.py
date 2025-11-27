@@ -27,21 +27,21 @@ def cache_all_patches():
     train_generator = patch_yielder.yield_batch(DataMode.TRAIN, n_samples_per_polygon=1)
     train_count = 0
     
-    try:
-        for i, (patches, labels) in enumerate(train_generator):
-            train_count += patches.shape[0]
-            elapsed = time.time() - start_time
-            print(f'Train batch {i+1}: {patches.shape[0]} patches (total: {train_count}, time: {elapsed:.1f}s)')
-            
-            if i >= 100:  # Cache substantial amount (100+ batches)
-                break
+    # try:
+    for i, (patches, labels) in enumerate(train_generator):
+        train_count += patches.shape[0]
+        elapsed = time.time() - start_time
+        print(f'Train batch {i+1}: {patches.shape[0]} patches (total: {train_count}, time: {elapsed:.1f}s)')
+        
+        if i >= 100:  # Cache substantial amount (100+ batches)
+            break
                 
-    except KeyboardInterrupt:
-        print(f'Train caching interrupted at {train_count} patches')
-    except Exception as e:
-        print(f'Train caching error: {e}')
-        import traceback
-        traceback.print_exc()
+    # except KeyboardInterrupt:
+    #     print(f'Train caching interrupted at {train_count} patches')
+    # except Exception as e:
+    #     print(f'Train caching error: {e}')
+    #     import traceback
+    #     traceback.print_exc()
     
     total_patches += train_count
     
@@ -50,21 +50,21 @@ def cache_all_patches():
     val_generator = patch_yielder.yield_batch(DataMode.VALIDATION, n_samples_per_polygon=1)
     val_count = 0
     
-    try:
-        for i, (patches, labels) in enumerate(val_generator):
-            val_count += patches.shape[0]
-            elapsed = time.time() - start_time
-            print(f'Validation batch {i+1}: {patches.shape[0]} patches (total: {val_count}, time: {elapsed:.1f}s)')
-            
-            if i >= 30:  # Cache substantial amount
-                break
+    # try:
+    for i, (patches, labels) in enumerate(val_generator):
+        val_count += patches.shape[0]
+        elapsed = time.time() - start_time
+        print(f'Validation batch {i+1}: {patches.shape[0]} patches (total: {val_count}, time: {elapsed:.1f}s)')
+        
+        if i >= 30:  # Cache substantial amount
+            break
                 
-    except KeyboardInterrupt:
-        print(f'Validation caching interrupted at {val_count} patches')
-    except Exception as e:
-        print(f'Validation caching error: {e}')
-        import traceback
-        traceback.print_exc()
+    # except KeyboardInterrupt:
+    #     print(f'Validation caching interrupted at {val_count} patches')
+    # except Exception as e:
+    #     print(f'Validation caching error: {e}')
+    #     import traceback
+    #     traceback.print_exc()
     
     total_patches += val_count
     
@@ -73,21 +73,21 @@ def cache_all_patches():
     test_generator = patch_yielder.yield_batch(DataMode.TEST, n_samples_per_polygon=1)
     test_count = 0
     
-    try:
-        for i, (patches, labels) in enumerate(test_generator):
-            test_count += patches.shape[0]
-            elapsed = time.time() - start_time
-            print(f'Test batch {i+1}: {patches.shape[0]} patches (total: {test_count}, time: {elapsed:.1f}s)')
-            
-            if i >= 30:  # Cache substantial amount
-                break
+    # try:
+    for i, (patches, labels) in enumerate(test_generator):
+        test_count += patches.shape[0]
+        elapsed = time.time() - start_time
+        print(f'Test batch {i+1}: {patches.shape[0]} patches (total: {test_count}, time: {elapsed:.1f}s)')
+        
+        if i >= 30:  # Cache substantial amount
+            break
                 
-    except KeyboardInterrupt:
-        print(f'Test caching interrupted at {test_count} patches')
-    except Exception as e:
-        print(f'Test caching error: {e}')
-        import traceback
-        traceback.print_exc()
+    # except KeyboardInterrupt:
+    #     print(f'Test caching interrupted at {test_count} patches')
+    # except Exception as e:
+    #     print(f'Test caching error: {e}')
+    #     import traceback
+    #     traceback.print_exc()
     
     total_patches += test_count
     

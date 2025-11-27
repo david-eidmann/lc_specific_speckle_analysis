@@ -8,6 +8,7 @@ import random
 from dataclasses import dataclass
 import json
 import datetime
+import re
 
 import numpy as np
 import geopandas as gpd
@@ -103,8 +104,18 @@ class PatchYielder:
         self._find_image_tuples()
         self._filter_image_tuples_by_bounds_and_classes()
         self._compute_aois_for_all_tuples()
-        self._filter_polygons_by_individual_aois()
-        self._split_data()
+        self._filter_polygons_by_individual_aois()  # Filter by AOIs first
+        self._split_data()  # Do data splitting after AOI filtering to ensure consistency
+    
+    def _generate_stable_unique_key(self, image_tuple) -> str:
+        """Generate a stable unique key for an image tuple that matches AOI file naming."""
+        import re
+        import hashlib
+        time_match = re.search(r'T(\d{6})', image_tuple.vv_path.name)
+        time_str = time_match.group(1) if time_match else "unknown"
+        # Use same hash generation as AOI file naming (both VV and VH paths)
+        path_hash = hashlib.md5(f"{image_tuple.vv_path}_{image_tuple.vh_path}".encode()).hexdigest()[:6]
+        return f"{image_tuple.date}_{time_str}_{path_hash}"
     
     def _load_training_data(self) -> None:
         """Load training data from multiple sources and reproject to target EPSG."""
@@ -185,7 +196,7 @@ class PatchYielder:
             logger.warning(f"Classes {removed_classes} have too few samples and will be excluded from splits")
             
             # Filter data to only include valid classes
-            self.gdf = self.gdf[self.gdf[class_col].isin(valid_classes)].copy()
+            self.gdf = self.gdf[self.gdf[class_col].isin(valid_classes)].reset_index(drop=True)
             logger.info(f"Filtered to {len(self.gdf)} polygons after removing small classes")
         
         if len(self.gdf) == 0:
@@ -231,6 +242,9 @@ class PatchYielder:
             DataMode.VALIDATION: val_gdf,
             DataMode.TEST: test_gdf
         }
+        
+        # No complex position mapping needed since split happens after AOI filtering
+        # The intersection mapping positions should match the DataFrame indices directly
         
         for mode, data in self.data_splits.items():
             logger.info(f"{mode.value}: {len(data)} polygons")
@@ -437,10 +451,7 @@ class PatchYielder:
         # Keep image tuples whose corresponding unique keys are valid
         valid_image_indices = []
         for i, t in enumerate(self.image_tuples):
-            import re
-            time_match = re.search(r'T(\d{6})', t.vv_path.name)
-            time_str = time_match.group(1) if time_match else f"idx{i}"
-            unique_key = f"{t.date}_{time_str}_{i}"
+            unique_key = self._generate_stable_unique_key(t)
             if unique_key in valid_dates:
                 valid_image_indices.append(i)
         
@@ -467,9 +478,7 @@ class PatchYielder:
                 valid_image_indices = []
                 for i in range(len(self.image_tuples)):  # Use original length before filtering
                     import re
-                    time_match = re.search(r'T(\d{6})', self.image_tuples[i].vv_path.name)
-                    time_str = time_match.group(1) if time_match else f"idx{i}"
-                    unique_key = f"{self.image_tuples[i].date}_{time_str}_{i}"
+                    unique_key = self._generate_stable_unique_key(self.image_tuples[i])
                     if unique_key in valid_dates:
                         valid_image_indices.append(i)
                 
@@ -527,9 +536,7 @@ class PatchYielder:
             # Create unique key using date, index and filename to avoid overwrites
             # Extract time info from filename for better identification
             import re
-            time_match = re.search(r'T(\d{6})', image_tuple.vv_path.name)
-            time_str = time_match.group(1) if time_match else f"idx{i}"
-            unique_key = f"{image_tuple.date}_{time_str}_{i}"
+            unique_key = self._generate_stable_unique_key(image_tuple)
             self.tuple_aois[unique_key] = aoi
             aoi_polygons.append(aoi.geometry[0])
             
@@ -744,16 +751,13 @@ class PatchYielder:
         original_count = len(self.gdf)
         
         # Create a mapping of which polygons intersect with which image AOIs
-        # Store the intersection at the current dataframe state, then filter consistently
+        # Use position-based indexing to avoid DataFrame index issues
         self.polygon_image_intersections = {}
-        all_valid_indices = set()
+        all_valid_positions = set()
         
         for i, image_tuple in enumerate(self.image_tuples):
-            # Use the same indexing scheme as in AOI creation
-            import re
-            time_match = re.search(r'T(\d{6})', image_tuple.vv_path.name)
-            time_str = time_match.group(1) if time_match else f"idx{i}"
-            unique_key = f"{image_tuple.date}_{time_str}_{i}"
+            # Use a stable key based on file path hash instead of list index
+            unique_key = self._generate_stable_unique_key(image_tuple)
             
             if unique_key not in self.tuple_aois:
                 logger.warning(f"No AOI found for image tuple {unique_key}")
@@ -762,23 +766,44 @@ class PatchYielder:
             aoi = self.tuple_aois[unique_key]
             aoi_geometry = aoi.geometry[0]
             
-            # Find polygons that intersect with this specific AOI using current indices
+            # Find polygons that intersect with this specific AOI using position-based indexing
             intersects = self.gdf.intersects(aoi_geometry)
-            valid_indices = self.gdf.index[intersects].tolist()
+            valid_positions = []
+            for pos, intersects_flag in enumerate(intersects):
+                if intersects_flag:
+                    valid_positions.append(pos)
             
-            logger.info(f"AOI {unique_key}: {len(valid_indices)} intersecting polygons")
+            logger.info(f"AOI {unique_key}: {len(valid_positions)} intersecting polygons")
             
-            # Store the mapping using current indices - these will remain stable
-            self.polygon_image_intersections[unique_key] = set(valid_indices)
-            all_valid_indices.update(valid_indices)
+            # Store the mapping using position-based indices (0, 1, 2, ...)
+            self.polygon_image_intersections[unique_key] = set(valid_positions)
+            all_valid_positions.update(valid_positions)
         
-        # Filter to only polygons that intersect with at least one AOI using stable indices
-        if all_valid_indices:
-            # Filter using the indices, preserving the mapping relationship
-            self.gdf = self.gdf.loc[list(all_valid_indices)]
-            # DON'T call .copy() here to preserve the original indices
+        # Filter to only polygons that intersect with at least one AOI using position-based indexing
+        if all_valid_positions:
+            # Convert positions to boolean mask and filter
+            mask = [i in all_valid_positions for i in range(len(self.gdf))]
+            self.gdf = self.gdf[mask].reset_index(drop=True)
+            
+            # Update intersection mapping to reflect the new positions after filtering
+            # Create reverse mapping from old position to new position
+            old_to_new_pos = {}
+            new_pos = 0
+            for old_pos in range(len(mask)):
+                if mask[old_pos]:
+                    old_to_new_pos[old_pos] = new_pos
+                    new_pos += 1
+            
+            # Update intersection mappings with new positions
+            for unique_key in self.polygon_image_intersections:
+                old_positions = self.polygon_image_intersections[unique_key]
+                new_positions = set()
+                for old_pos in old_positions:
+                    if old_pos in old_to_new_pos:
+                        new_positions.add(old_to_new_pos[old_pos])
+                self.polygon_image_intersections[unique_key] = new_positions
         else:
-            self.gdf = self.gdf.iloc[0:0]  # Empty dataframe with same structure
+            self.gdf = self.gdf.iloc[0:0].reset_index(drop=True)  # Empty dataframe with same structure
         
         filtered_count = len(self.gdf)
         logger.info(f"Filtered from {original_count} to {filtered_count} polygons "
@@ -1067,10 +1092,11 @@ class PatchYielder:
         
         cache_info = {
             "mode": mode.value,
-            "patch_size": int(self.config.neural_network.patch_size),
+            "patch_size": len(patches),
             "classes": sorted([int(c) for c in self.config.classes]),
             "orbit": self.config.orbits[0] if self.config.orbits else "unknown",
             "batch_id": batch_id  # Unique batch identifier
+
         }
         
         import json
@@ -1423,147 +1449,263 @@ class PatchYielder:
         return patches
     
     def yield_batch(self, mode: DataMode, n_samples_per_polygon: int = 1) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
-        """Yield batches of patches for specified mode with image exhaustion strategy.
-        
-        Args:
-            mode: Data mode (train/validation/test)
-            n_samples_per_polygon: Number of samples per polygon (default=1)
-            
-        Yields:
-            Tuple of (patches, labels) as numpy arrays
         """
-        if mode not in self.data_splits:
-            raise ValueError(f"Invalid mode: {mode}")
-        
-        data = self.data_splits[mode]
-        batch_size = self.config.neural_network.batch_size
-        class_col = self.config.column_id
-        
+        Generate batches of patches following the specified workflow:
+        - Iterate over images
+        - For each image: load valid AOI, validate it, subset geodataframe
+        - For each feature: follow the buffering and patch extraction workflow
+        """
         logger.info(f"Starting batch yielding for {mode.value} mode")
-        logger.info(f"Available image tuples: {[t.date for t in self.image_tuples]}")
+        logger.info(f"Available image tuples: {[img.date for img in self.image_tuples]}")
         logger.info(f"Samples per polygon: {n_samples_per_polygon}")
         
-        # Keep track of opened datasets
-        opened_datasets = {}
-        current_image_idx = 0
+        batch_size = self.config.neural_network.batch_size
+        patch_size = self.config.neural_network.patch_size
         
-        def extract_time_from_filename(filename: str) -> str:
-            """Extract HHMMSS from S1 filename, e.g., 054221 from S1A_IW_GRDH_1SDV_20220611T054221_..."""
-            import re
-            time_match = re.search(r'T(\d{6})', filename)
-            return time_match.group(1) if time_match else filename[17:23]  # fallback
+        # Get the split data for this mode
+        split_data = self.data_splits[mode]
+        logger.debug(f"Split data has {len(split_data)} polygons")
         
-        def get_open_datasets(image_tuple: ImageTuple) -> Tuple[rasterio.DatasetReader, rasterio.DatasetReader]:
-            """Get or open datasets for an image tuple."""
-            tuple_key = image_tuple.date
-            if tuple_key not in opened_datasets:
-                vv_src = rasterio.open(image_tuple.vv_path)
-                vh_src = rasterio.open(image_tuple.vh_path)
-                opened_datasets[tuple_key] = (vv_src, vh_src)
-            return opened_datasets[tuple_key]
+        # Initialize batch collection
+        batch_patches = []
+        batch_labels = []
+        self.image_tuples.sort(key=lambda x: (x.date,x.vh_path,x.vv_path))  # Ensure consistent order
+        # Iterate over images
+        for img_idx, image_tuple in enumerate(self.image_tuples):
+            logger.debug(f"Processing image {img_idx + 1}/{len(self.image_tuples)}: {image_tuple.date}")
+            
+            # Load the valid AOI for this image
+            unique_key = self._generate_stable_unique_key(image_tuple)
+            
+            if unique_key not in self.tuple_aois:
+                logger.warning(f"No valid AOI found for image {unique_key}")
+                continue
+                
+            valid_aoi = self.tuple_aois[unique_key]
+            logger.debug(f"Loaded AOI for {unique_key}: {len(valid_aoi)} geometries")
+            
+            # Validate the valid AOI again
+            if valid_aoi.geometry.iloc[0].is_empty or valid_aoi.geometry.iloc[0].area == 0:
+                logger.warning(f"AOI for {unique_key} is empty or has zero area")
+                continue
+                
+            aoi_geometry = valid_aoi.geometry.iloc[0]
+            logger.debug(f"AOI bounds: {aoi_geometry.bounds}")
+            
+            # Subset the loaded geodataframe to the valid AOI
+            # Get polygons that intersect with this AOI and are in the current split
+            intersecting_positions = self.polygon_image_intersections.get(unique_key, set())
+            split_indices = set(split_data.index)
+            valid_indices = intersecting_positions & split_indices
+            
+            if not valid_indices:
+                logger.debug(f"No valid polygons found for {unique_key} in {mode.value} split")
+                continue
+                
+            # Get the subset of polygons for this image
+            image_polygons = split_data.loc[list(valid_indices)]
+            logger.debug(f"Processing {len(image_polygons)} polygons for image {unique_key}")
+            
+            # Open raster files for this image
+            try:
+                import rasterio
+                with rasterio.open(image_tuple.vv_path) as vv_src, \
+                     rasterio.open(image_tuple.vh_path) as vh_src:
+                    
+                    logger.debug(f"Opened rasters: VV {vv_src.bounds}, VH {vh_src.bounds}")
+                    
+                    # Iterate over features (polygons)
+                    for poly_idx, (idx, polygon_row) in enumerate(image_polygons.iterrows()):
+                        logger.debug(f"Processing polygon {poly_idx + 1}/{len(image_polygons)} (index {idx})")
+                        
+                        # Follow the specified workflow for each feature
+                        try:
+                            patch_objects = self._extract_patches_following_workflow(
+                                polygon_row, vv_src, vh_src, image_tuple, mode, n_samples_per_polygon
+                            )
+                            
+                            if patch_objects:
+                                logger.debug(f"Extracted {len(patch_objects)} patches from polygon {idx}")
+                                
+                                # Add patches to cache
+                                self._add_patches_to_cache(patch_objects, mode)
+                                
+                                # Add to current batch
+                                for patch_obj in patch_objects:
+                                    batch_patches.append(patch_obj.data)
+                                    batch_labels.append(patch_obj.class_id)
+                                    
+                                    # Yield batch when full
+                                    if len(batch_patches) >= batch_size:
+                                        # Convert to arrays
+                                        patches_array = np.array(batch_patches)
+                                        labels_array = np.array(batch_labels)
+                                        
+                                        # Shuffle batch
+                                        indices = np.random.permutation(len(patches_array))
+                                        patches_array = patches_array[indices]
+                                        labels_array = labels_array[indices]
+                                        
+                                        logger.debug(f"Yielding batch: {patches_array.shape}")
+                                        yield patches_array, labels_array
+                                        
+                                        # Reset batch
+                                        batch_patches = []
+                                        batch_labels = []
+                            else:
+                                logger.debug(f"No patches extracted from polygon {idx}")
+                                
+                        except Exception as e:
+                            logger.error(f"Error processing polygon {idx}: {e}")
+                            continue
+                            
+            except Exception as e:
+                logger.error(f"Error opening raster files for {unique_key}: {e}")
+                continue
+        
+        # Yield final partial batch if any patches remain
+        if batch_patches:
+            logger.info(f"Final flush: {len(batch_patches)} patches for {mode.value} mode")
+            patches_array = np.array(batch_patches)
+            labels_array = np.array(batch_labels)
+            
+            # Shuffle final batch
+            indices = np.random.permutation(len(patches_array))
+            patches_array = patches_array[indices]  
+            labels_array = labels_array[indices]
+            
+            yield patches_array, labels_array
+            
+        # Flush remaining cached patches
+        self._flush_patch_cache(mode)
+        
+    def _extract_patches_following_workflow(self, polygon_row: pd.Series, vv_src: rasterio.DatasetReader,
+                                          vh_src: rasterio.DatasetReader, image_tuple: ImageTuple, 
+                                          mode: DataMode, n_samples: int) -> List[Patch]:
+        """
+        Extract patches following your specified workflow:
+        1. Load masked array on UNBUFFERED polygon
+        2. Copy array
+        3. Buffer nan-values outside valid area into valid area by n=patch_width/2 pixels
+        4. Valid pixels of buffered array are potential centroids (ensures 100% inside polygons)
+        5. Take n samples using farthest-point sampling starting from one corner
+        6. Create patches from array_1 using these centroids
+        """
+        geometry = polygon_row.geometry
+        class_id = polygon_row[self.config.column_id]
+        patch_size = self.config.neural_network.patch_size
+        
+        logger.debug(f"Extracting patches following workflow for class {class_id}")
+        logger.debug(f"Polygon bounds: {geometry.bounds}")
+        logger.debug(f"Raster bounds: {vv_src.bounds}")
         
         try:
-            while True:  # Infinite generator
-                # Cycle through available images
-                current_tuple = self.image_tuples[current_image_idx]
+            # Step 1: Load masked array on UNBUFFERED polygon
+            from rasterio.mask import mask
+            masked_vv, mask_transform = mask(vv_src, [geometry], crop=True, filled=False)
+            masked_vh, _ = mask(vh_src, [geometry], crop=True, filled=False)
+            
+            # Remove band dimension
+            array_1_vv = masked_vv[0]  # Original unbuffered data
+            array_1_vh = masked_vh[0]
+            
+            logger.debug(f"Loaded masked arrays: VV shape {array_1_vv.shape}, VH shape {array_1_vh.shape}")
+            
+            # Step 2: Copy array
+            array_2_vv = array_1_vv.copy()
+            array_2_vh = array_1_vh.copy()
+            
+            # Step 3: Buffer nan-values outside valid area into valid area by n=patch_width/2 pixels
+            buffer_pixels = patch_size // 2
+            
+            # Create binary mask of valid pixels (not NaN and not masked)
+            valid_mask_vv = ~np.ma.getmaskarray(array_2_vv) & ~np.isnan(array_2_vv)
+            valid_mask_vh = ~np.ma.getmaskarray(array_2_vh) & ~np.isnan(array_2_vh)
+            valid_mask = valid_mask_vv & valid_mask_vh
+            
+            # Apply binary erosion to create inward buffer
+            from scipy.ndimage import binary_erosion
+            structure = np.ones((buffer_pixels * 2 + 1, buffer_pixels * 2 + 1))
+            buffered_valid_mask = binary_erosion(valid_mask, structure=structure)
+            
+            logger.debug(f"Valid pixels before buffering: {valid_mask.sum()}")
+            logger.debug(f"Valid pixels after buffering: {buffered_valid_mask.sum()}")
+            
+            if buffered_valid_mask.sum() == 0:
+                logger.debug("No valid pixels remaining after buffering")
+                return []
+            
+            # Step 4: Valid pixels of array_2 are potential centroids
+            potential_centroids = np.column_stack(np.where(buffered_valid_mask))
+            
+            if len(potential_centroids) == 0:
+                logger.debug("No potential centroids found")
+                return []
+            
+            # Step 5: Take n samples using farthest-point sampling
+            n_samples_actual = min(n_samples, len(potential_centroids))
+            
+            if n_samples_actual == 1:
+                # Just take one point (could be random or corner)
+                selected_centroids = potential_centroids[:1]
+            else:
+                # Use farthest-point sampling
+                selected_centroids = self._farthest_point_sampling(potential_centroids, n_samples_actual)
+            
+            logger.debug(f"Selected {len(selected_centroids)} centroids from {len(potential_centroids)} candidates")
+            
+            # Step 6: Create patches from array_1 using selected centroids
+            patches = []
+            half_patch = patch_size // 2
+            
+            for centroid in selected_centroids:
+                row, col = centroid
                 
-                # Get time string for logging
-                time_str = extract_time_from_filename(current_tuple.vv_path.name)
-                logger.debug(f"Using image tuple: {current_tuple.date}_{time_str} (index {current_image_idx})")
-                vv_src, vh_src = get_open_datasets(current_tuple)
+                # Extract patch bounds
+                row_start = row - half_patch
+                row_end = row + half_patch
+                col_start = col - half_patch  
+                col_end = col + half_patch
                 
-                batch_patch_objects = []
-                
-                # Sample polygons from current image
-                tuple_index = self.image_tuples.index(current_tuple)
-                time_str = extract_time_from_filename(current_tuple.vv_path.name)
-                unique_key = f"{current_tuple.date}_{time_str}_{tuple_index}"
-                intersecting_indices = self.polygon_image_intersections.get(unique_key, set())
-                
-                logger.debug(f"Processing image {unique_key}: {current_tuple.vv_path.name}")
-                logger.debug(f"Intersection mapping has {len(intersecting_indices)} polygons")
-                
-                if not intersecting_indices:
-                    logger.debug(f"No intersection mapping found for {unique_key}")
-                    continue
-                
-                # Get polygons that intersect with current image and are in the current split
-                # Use index intersection to find valid polygons
-                data_indices = set(data.index)
-                valid_indices = intersecting_indices & data_indices
-                
-                logger.debug(f"Valid polygons for {unique_key}: {len(valid_indices)} out of {len(intersecting_indices)} mapped")
-                
-                if not valid_indices:
-                    logger.debug(f"No valid polygons found for {unique_key}")
-                    continue
+                # Check bounds
+                if (row_start >= 0 and row_end <= array_1_vv.shape[0] and
+                    col_start >= 0 and col_end <= array_1_vv.shape[1]):
                     
-                valid_polygons = data.loc[list(valid_indices)]
-                
-                patches_collected = 0
-                max_attempts = min(len(valid_polygons) * 2, batch_size * 5)  # Reasonable limit
-                
-                for attempt in range(max_attempts):
-                    if patches_collected >= batch_size:
-                        break
+                    # Extract patch from original unbuffered data (array_1)
+                    patch_vv = array_1_vv[row_start:row_end, col_start:col_end]
+                    patch_vh = array_1_vh[row_start:row_end, col_start:col_end]
                     
-                    polygon_row = valid_polygons.sample(n=1, random_state=None).iloc[0]
+                    # Combine VV and VH channels
+                    patch_data = np.stack([patch_vv, patch_vh], axis=-1)
                     
-                    # Extract patches from polygon
-                    patch_objects = self._extract_patches_to_objects(
-                        polygon_row, vv_src, vh_src, current_tuple, mode
+                    # Calculate patch bounds in world coordinates
+                    patch_transform = mask_transform * rasterio.Affine.translation(col_start, row_start)
+                    patch_bounds = rasterio.transform.array_bounds(
+                        patch_size, patch_size, patch_transform
                     )
                     
-                    if patch_objects:
-                        # Add patches to cache
-                        self._add_patches_to_cache(patch_objects, mode)
-                        
-                        # Take up to n_samples_per_polygon patches
-                        samples_to_take = min(len(patch_objects), n_samples_per_polygon)
-                        selected_patches = random.sample(patch_objects, samples_to_take)
-                        
-                        for patch_obj in selected_patches:
-                            if patches_collected >= batch_size:
-                                break
-                            batch_patch_objects.append(patch_obj)
-                            patches_collected += 1
-                
-                if len(batch_patch_objects) > 0:
-                    # Extract data and labels from patch objects
-                    batch_patches = [p.data for p in batch_patch_objects]
-                    batch_labels = [p.class_id for p in batch_patch_objects]
+                    # Create patch object
+                    patch_obj = Patch(
+                        data=patch_data,
+                        transform=patch_transform,
+                        bounds=patch_bounds,
+                        crs=str(vv_src.crs),
+                        orbit=image_tuple.date,  # Using date as orbit identifier
+                        src_files=(str(image_tuple.vv_path), str(image_tuple.vh_path)),
+                        date=image_tuple.date,
+                        class_id=class_id,
+                        data_mode=mode
+                    )
                     
-                    # Convert to numpy arrays
-                    patches_array = np.array(batch_patches)
-                    labels_array = np.array(batch_labels)
+                    patches.append(patch_obj)
                     
-                    # Shuffle batch
-                    indices = np.random.permutation(len(patches_array))
-                    patches_array = patches_array[indices]
-                    labels_array = labels_array[indices]
-                    
-                    logger.debug(f"Yielding batch: {patches_array.shape}, labels: {len(labels_array)}")
-                    
-                    # Advance to next image for next batch to ensure cycling
-                    current_image_idx = (current_image_idx + 1) % len(self.image_tuples)
-                    
-                    yield patches_array, labels_array
                 else:
-                    logger.warning(f"No patches generated for {mode.value} mode")
-                    # Try next image before giving up
-                    current_image_idx = (current_image_idx + 1) % len(self.image_tuples)
-        
-        finally:
-            # Flush any remaining patches in cache
-            try:
-                self.flush_all_caches()
-            except Exception as e:
-                logger.error(f"Error flushing caches: {e}")
+                    logger.debug(f"Centroid {centroid} would create out-of-bounds patch")
             
-            # Ensure resources are cleaned up
-            for vv_src, vh_src in opened_datasets.values():
-                try:
-                    vv_src.close()
-                    vh_src.close()
-                except:
-                    pass
+            logger.debug(f"Successfully created {len(patches)} patches")
+            return patches
+            
+        except Exception as e:
+            logger.error(f"Error in patch extraction workflow: {e}")
+            return []
+        pass
