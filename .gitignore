@@ -25,7 +25,7 @@ wheels/
 *.egg
 MANIFEST
 cache
-
+data
 # PyInstaller
 *.manifest
 *.spec

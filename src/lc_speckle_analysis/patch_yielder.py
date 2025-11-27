@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Iterator, List, Tuple, Dict, Optional
 import random
 from dataclasses import dataclass
+import json
+import datetime
 
 import numpy as np
 import geopandas as gpd
@@ -24,6 +26,13 @@ import hashlib
 from .config import logger, PROJECT_ROOT
 from .data_config import TrainingDataConfig
 
+
+class DataMode(Enum):
+    """Data mode enumeration."""
+    TRAIN = "train"
+    VALIDATION = "validation" 
+    TEST = "test"
+
 @dataclass
 class Patch:
     """Container for a single patch with metadata."""
@@ -35,13 +44,7 @@ class Patch:
     src_files: tuple  # (vv_path, vh_path)
     date: str  # YYYYMMDD
     class_id: int  # Class label
-
-class DataMode(Enum):
-    """Data mode enumeration."""
-    TRAIN = "train"
-    VALIDATION = "validation" 
-    TEST = "test"
-
+    data_mode: DataMode  # Data mode (train/validation/test)
 
 @dataclass
 class ImageTuple:
@@ -82,17 +85,31 @@ class PatchYielder:
         self._load_training_data()
         self._buffer_polygons_globally()
         self._find_image_tuples()
+        self._filter_image_tuples_by_bounds_and_classes()
         self._compute_aois_for_all_tuples()
         self._filter_polygons_by_individual_aois()
         self._split_data()
     
     def _load_training_data(self) -> None:
-        """Load training data and reproject to target EPSG."""
-        logger.info(f"Loading training data from: {self.config.train_data_path}")
+        """Load training data from multiple sources and reproject to target EPSG."""
+        logger.info(f"Loading training data from {len(self.config.train_data_paths)} sources")
         
-        self.gdf = gpd.read_file(self.config.train_data_path)
+        # Load and combine multiple training datasets
+        gdfs = []
+        total_polygons = 0
+        
+        for i, path in enumerate(self.config.train_data_paths):
+            logger.info(f"Loading dataset {i+1}/{len(self.config.train_data_paths)}: {path}")
+            gdf = gpd.read_file(path)
+            gdfs.append(gdf)
+            total_polygons += len(gdf)
+            logger.info(f"  Loaded {len(gdf)} polygons from {Path(path).name}")
+        
+        # Combine all datasets
+        self.gdf = gpd.pd.concat(gdfs, ignore_index=True)
         original_crs = self.gdf.crs
-        logger.info(f"Original CRS: {original_crs}, Total polygons: {len(self.gdf)}")
+        logger.info(f"Combined datasets: {total_polygons} total polygons")
+        logger.info(f"Original CRS: {original_crs}, Final combined polygons: {len(self.gdf)}")
         
         # Reproject to target EPSG
         if self.gdf.crs != self.target_epsg:
@@ -258,6 +275,173 @@ class PatchYielder:
         
         logger.info(f"Using {len(self.image_tuples)} image tuples for processing")
     
+    def _filter_image_tuples_by_bounds_and_classes(self) -> None:
+        """Filter image tuples to keep only those with bounds intersecting training data and all required classes."""
+        logger.info("Filtering image tuples by bounds intersection and class availability")
+        
+        # Get training data bounds
+        training_bounds = self.gdf.total_bounds  # [minx, miny, maxx, maxy]
+        logger.info(f"Training data bounds: {training_bounds}")
+        
+        # Cache directory for discarded images list
+        cache_dir = PROJECT_ROOT / "data" / "cache"
+        cache_key = f"discarded_images_{hashlib.md5(str(training_bounds).encode()).hexdigest()[:8]}"
+        discarded_cache_file = cache_dir / f"{cache_key}.json"
+        
+        # Check if we have cached discarded images list
+        discarded_images = set()
+        if discarded_cache_file.exists():
+            logger.info(f"Loading discarded images from cache: {discarded_cache_file.name}")
+            import json
+            with open(discarded_cache_file, 'r') as f:
+                discarded_data = json.load(f)
+                discarded_images = set(discarded_data.get('discarded_images', []))
+        
+        filtered_tuples = []
+        newly_discarded = []
+        
+        for image_tuple in self.image_tuples:
+            # Create unique identifier for this image tuple
+            image_id = f"{image_tuple.vv_path.stem}_{image_tuple.vh_path.stem}"
+            
+            # Skip if already known to be discarded
+            if image_id in discarded_images:
+                logger.debug(f"Skipping known discarded image: {image_tuple.date}")
+                continue
+            
+            # Check bounds intersection by reading raster metadata
+            try:
+                with rasterio.open(image_tuple.vv_path) as src:
+                    # Get image bounds in target CRS
+                    image_bounds = src.bounds
+                    image_crs = src.crs
+                    
+                    # Convert to target CRS if needed
+                    if image_crs != self.target_epsg:
+                        from rasterio.warp import transform_bounds
+                        image_bounds = transform_bounds(image_crs, self.target_epsg, *image_bounds)
+                    
+                    # Check if bounds intersect
+                    bounds_intersect = (
+                        image_bounds[0] < training_bounds[2] and  # image_minx < training_maxx
+                        image_bounds[2] > training_bounds[0] and  # image_maxx > training_minx
+                        image_bounds[1] < training_bounds[3] and  # image_miny < training_maxy
+                        image_bounds[3] > training_bounds[1]      # image_maxy > training_miny
+                    )
+                    
+                    if not bounds_intersect:
+                        logger.info(f"Discarding {image_tuple.date}: no bounds intersection")
+                        newly_discarded.append(image_id)
+                        discarded_images.add(image_id)
+                        continue
+                    
+                    logger.debug(f"Image {image_tuple.date} bounds intersect with training data")
+                    filtered_tuples.append(image_tuple)
+                    
+            except Exception as e:
+                logger.warning(f"Error checking bounds for {image_tuple.date}: {e}")
+                newly_discarded.append(image_id)
+                discarded_images.add(image_id)
+        
+        # Update cached discarded images if we found new ones
+        if newly_discarded:
+            import json
+            cache_data = {
+                'discarded_images': list(discarded_images),
+                'training_bounds': training_bounds.tolist(),
+                'timestamp': datetime.datetime.now().isoformat()
+            }
+            with open(discarded_cache_file, 'w') as f:
+                json.dump(cache_data, f, indent=2)
+            logger.info(f"Cached {len(newly_discarded)} newly discarded images: {discarded_cache_file.name}")
+        
+        # Update image tuples
+        original_count = len(self.image_tuples)
+        self.image_tuples = filtered_tuples
+        logger.info(f"Filtered image tuples: {original_count} → {len(self.image_tuples)} (discarded {original_count - len(self.image_tuples)})")
+        
+        if not self.image_tuples:
+            raise ValueError("No image tuples remaining after bounds filtering")
+    
+    def _filter_aois_by_class_availability(self) -> None:
+        """Filter AOIs to keep only those that have sufficient class diversity (at least 80% of required classes)."""
+        logger.info("Filtering AOIs by class availability")
+        
+        required_classes = set(self.config.classes)
+        min_required_classes = max(1, int(len(required_classes) * 0.8))  # At least 80% of classes
+        valid_dates = []
+        
+        for date, aoi in self.tuple_aois.items():
+            # Check which polygons intersect with this AOI
+            intersecting_mask = self.gdf.intersects(aoi.geometry[0])
+            intersecting_polygons = self.gdf[intersecting_mask]
+            
+            if len(intersecting_polygons) == 0:
+                logger.info(f"Discarding AOI {date}: no intersecting polygons")
+                continue
+            
+            # Check which classes are available in intersecting polygons
+            available_classes = set(intersecting_polygons[self.config.column_id].unique())
+            missing_classes = required_classes - available_classes
+            
+            if len(available_classes) >= min_required_classes:
+                valid_dates.append(date)
+                if missing_classes:
+                    logger.info(f"AOI {date} accepted with {len(available_classes)}/{len(required_classes)} classes (missing: {missing_classes})")
+                else:
+                    logger.info(f"AOI {date} has all required classes: {available_classes}")
+            else:
+                logger.info(f"Discarding AOI {date}: insufficient class diversity ({len(available_classes)}/{len(required_classes)} < {min_required_classes})")
+                logger.info(f"  Available classes: {available_classes}")
+                logger.info(f"  Missing classes: {missing_classes}")
+        
+        # Filter image tuples and AOIs to keep only valid ones
+        original_count = len(self.image_tuples)
+        # Keep image tuples whose corresponding unique keys are valid
+        valid_image_indices = []
+        for i, t in enumerate(self.image_tuples):
+            import re
+            time_match = re.search(r'T(\d{6})', t.vv_path.name)
+            time_str = time_match.group(1) if time_match else f"idx{i}"
+            unique_key = f"{t.date}_{time_str}_{i}"
+            if unique_key in valid_dates:
+                valid_image_indices.append(i)
+        
+        self.image_tuples = [self.image_tuples[i] for i in valid_image_indices]
+        self.tuple_aois = {date: aoi for date, aoi in self.tuple_aois.items() if date in valid_dates}
+        
+        logger.info(f"Filtered AOIs by class availability: {original_count} → {len(self.image_tuples)} (discarded {original_count - len(self.image_tuples)})")
+        
+        if not self.image_tuples:
+            # If strict filtering fails, be more lenient - keep AOIs with any classes
+            logger.warning("No AOIs with 80% class coverage found, falling back to any class coverage")
+            valid_dates = []
+            for date, aoi in list(self.tuple_aois.items()):
+                intersecting_mask = self.gdf.intersects(aoi.geometry[0])
+                intersecting_polygons = self.gdf[intersecting_mask]
+                
+                if len(intersecting_polygons) > 0:
+                    available_classes = set(intersecting_polygons[self.config.column_id].unique())
+                    valid_dates.append(date)
+                    logger.info(f"Fallback: keeping AOI {date} with classes: {available_classes}")
+            
+            if valid_dates:
+                # Restore from the full list using the same logic
+                valid_image_indices = []
+                for i in range(len(self.image_tuples)):  # Use original length before filtering
+                    import re
+                    time_match = re.search(r'T(\d{6})', self.image_tuples[i].vv_path.name)
+                    time_str = time_match.group(1) if time_match else f"idx{i}"
+                    unique_key = f"{self.image_tuples[i].date}_{time_str}_{i}"
+                    if unique_key in valid_dates:
+                        valid_image_indices.append(i)
+                
+                self.image_tuples = [self.image_tuples[i] for i in valid_image_indices]
+                self.tuple_aois = {date: aoi for date, aoi in self.tuple_aois.items() if date in valid_dates}
+                logger.info(f"Fallback filtering: kept {len(self.image_tuples)} AOIs with any class coverage")
+            else:
+                raise ValueError("No AOIs remaining after class filtering")
+    
     def _compute_aois_for_all_tuples(self) -> None:
         """Compute valid AOI for each image tuple and cache results."""
         logger.info(f"Computing valid AOIs for {len(self.image_tuples)} image tuples")
@@ -303,11 +487,20 @@ class PatchYielder:
                 logger.info(f"Computing AOI for {image_tuple.date} (this may take a moment)")
                 aoi = self._compute_single_aoi(image_tuple, cache_key, valid_aoi_cache_dir)
             
-            self.tuple_aois[image_tuple.date] = aoi
+            # Create unique key using date, index and filename to avoid overwrites
+            # Extract time info from filename for better identification
+            import re
+            time_match = re.search(r'T(\d{6})', image_tuple.vv_path.name)
+            time_str = time_match.group(1) if time_match else f"idx{i}"
+            unique_key = f"{image_tuple.date}_{time_str}_{i}"
+            self.tuple_aois[unique_key] = aoi
             aoi_polygons.append(aoi.geometry[0])
             
             # Log individual AOI info
-            logger.info(f"AOI for {image_tuple.date}: area={aoi.geometry[0].area / 1e6:.1f} km²")
+            logger.info(f"AOI for {unique_key}: area={aoi.geometry[0].area / 1e6:.1f} km²")
+        
+        # Filter AOIs by class availability
+        self._filter_aois_by_class_availability()
         
         # Combine all AOIs into one (union of all valid areas)
         if len(aoi_polygons) > 1:
@@ -430,6 +623,43 @@ class PatchYielder:
         aoi_final = aoi_buffered_out.copy()
         aoi_final.geometry = aoi_buffered_out.geometry.buffer(-5000)
         
+        # Intersect with training data bounds to ensure AOI is within training area
+        logger.info(f"Intersecting AOI with training data bounds")
+        from shapely.geometry import box
+        training_bounds = self.gdf.total_bounds  # [minx, miny, maxx, maxy]
+        training_bbox = box(training_bounds[0], training_bounds[1], training_bounds[2], training_bounds[3])
+        
+        # Create GeoDataFrame for the training bounds box
+        training_bbox_gdf = gpd.GeoDataFrame({'id': [1]}, geometry=[training_bbox], crs=self.target_epsg)
+        
+        # Intersect AOI with training bounds
+        aoi_intersected = gpd.overlay(aoi_final, training_bbox_gdf, how='intersection')
+        
+        if len(aoi_intersected) == 0 or aoi_intersected.geometry.iloc[0].is_empty:
+            logger.warning(f"AOI for {date} does not intersect with training data bounds - skipping")
+            # Return empty AOI that will be filtered out later
+            empty_geom = gpd.GeoDataFrame({'id': [1]}, geometry=[training_bbox.buffer(0)], crs=self.target_epsg)
+            empty_geom.geometry = empty_geom.geometry.buffer(-1)  # Make it empty
+            return empty_geom
+        else:
+            # Use the intersected AOI
+            aoi_final = aoi_intersected.copy()
+            # Ensure we have the right structure
+            aoi_final = gpd.GeoDataFrame({'id': [1]}, geometry=[aoi_final.geometry.iloc[0]], crs=self.target_epsg)
+        
+        # Check if AOI contains at least 50 polygons
+        intersecting_polygons = self.gdf.intersects(aoi_final.geometry.iloc[0])
+        n_intersecting = intersecting_polygons.sum()
+        
+        if n_intersecting < 50:
+            logger.warning(f"AOI for {date} contains only {n_intersecting} polygons (minimum 50 required) - skipping")
+            # Return empty AOI that will be filtered out later  
+            empty_geom = gpd.GeoDataFrame({'id': [1]}, geometry=[training_bbox.buffer(0)], crs=self.target_epsg)
+            empty_geom.geometry = empty_geom.geometry.buffer(-1)  # Make it empty
+            return empty_geom
+        else:
+            logger.info(f"AOI for {date} contains {n_intersecting} polygons (meets minimum requirement)")
+        
         # Check if polygon still exists after negative buffer
         if aoi_final.geometry.iloc[0].is_empty:
             logger.warning("Polygon became empty after safety buffer, using smaller buffer")
@@ -471,18 +701,28 @@ class PatchYielder:
         self.polygon_image_intersections = {}
         all_valid_polygon_indices = set()
         
-        for image_tuple in self.image_tuples:
-            aoi = self.tuple_aois[image_tuple.date]
+        for i, image_tuple in enumerate(self.image_tuples):
+            # Use the same indexing scheme as in AOI creation
+            import re
+            time_match = re.search(r'T(\d{6})', image_tuple.vv_path.name)
+            time_str = time_match.group(1) if time_match else f"idx{i}"
+            unique_key = f"{image_tuple.date}_{time_str}_{i}"
+            
+            if unique_key not in self.tuple_aois:
+                logger.warning(f"No AOI found for image tuple {unique_key}")
+                continue
+                
+            aoi = self.tuple_aois[unique_key]
             aoi_geometry = aoi.geometry[0]
             
             # Find polygons that intersect with this specific AOI
             intersects = self.gdf.intersects(aoi_geometry)
             valid_indices = self.gdf.index[intersects].tolist()
             
-            logger.info(f"AOI {image_tuple.date}: {len(valid_indices)} intersecting polygons")
+            logger.info(f"AOI {unique_key}: {len(valid_indices)} intersecting polygons")
             
-            # Store the mapping for this image
-            self.polygon_image_intersections[image_tuple.date] = set(valid_indices)
+            # Store the mapping for this image using unique key
+            self.polygon_image_intersections[unique_key] = set(valid_indices)
             all_valid_polygon_indices.update(valid_indices)
         
         # Filter to only polygons that intersect with at least one AOI
@@ -521,10 +761,25 @@ class PatchYielder:
         
         logger.info(f"Global buffer: inward {abs(buffer_distance):.1f}m for minimum viable polygon size (patch size {patch_size})")
         
-        # Create cache key based on parameters and data hash
+        # Create descriptive cache key with GPKG basenames and parameters
         original_count = len(self.gdf)
         data_hash = hashlib.md5(str(self.gdf.geometry.bounds.values.tobytes()).encode()).hexdigest()[:8]
-        cache_key = f"global_buffered_polygons_patch{patch_size}_epsg{self.target_epsg.split(':')[1]}_{data_hash}"
+        
+        # Extract basenames from training data paths for verbose naming
+        gpkg_basenames = []
+        for path_str in self.config.train_data_paths:
+            path = Path(path_str)
+            # Extract meaningful part: e.g., "Niedersachsen_2022" from "Niedersachsen_2022_InvekosDataset_c823cf0c.gpkg"
+            basename = path.stem
+            if '_InvekosDataset_' in basename:
+                meaningful_name = basename.split('_InvekosDataset_')[0]
+            else:
+                meaningful_name = basename
+            gpkg_basenames.append(meaningful_name)
+        
+        # Create verbose cache key
+        gpkg_names_str = "_".join(sorted(set(gpkg_basenames)))  # Remove duplicates and sort
+        cache_key = f"global_buffered_polygons_{gpkg_names_str}_patch{patch_size}_epsg{self.target_epsg.split(':')[1]}_{data_hash}"
         cache_file = cache_dir / f"{cache_key}.gpkg"
         
         # Try to load from cache first
@@ -610,8 +865,9 @@ class PatchYielder:
         if len(valid_coords[0]) == 0:
             return []
         
-        # Randomly sample patch centers from valid pixels
-        max_patches = min(10, len(valid_coords[0]))  # Reduced limit for faster processing
+        # Calculate dynamic patch limit based on config parameters  
+        max_patches = self._calculate_max_patches_for_polygon(geometry, patch_size)
+        max_patches = min(max_patches, len(valid_coords[0]))  # Can't exceed available valid pixels
         if max_patches == 0:
             return []
         
@@ -662,8 +918,36 @@ class PatchYielder:
         
         return patches
     
+    def _calculate_max_patches_for_polygon(self, geometry, patch_size: int) -> int:
+        """Calculate maximum number of patches to extract from a polygon.
+        
+        Args:
+            geometry: Shapely polygon geometry
+            patch_size: Size of patch in pixels
+            
+        Returns:
+            Maximum number of patches to extract
+        """
+        # Convert pixel size to square meters (assuming 10m resolution for Sentinel-1)
+        pixel_area_sqm = 10 * 10  # 100 square meters per pixel
+        patch_area_sqm = (patch_size * patch_size) * pixel_area_sqm
+        
+        # Get polygon area in square meters
+        polygon_area_sqm = geometry.area
+        
+        # Calculate patches based on area ratio
+        area_based_patches = int((polygon_area_sqm / patch_area_sqm) * self.config.n_patches_per_area)
+        
+        # Apply both limits
+        max_patches = min(
+            self.config.n_patches_per_feature,  # Traditional per-feature limit
+            max(1, area_based_patches)  # Area-based limit (minimum 1)
+        )
+        
+        return max_patches
+    
     def _cache_patches(self, patches: List[Patch], mode: DataMode) -> None:
-        """Cache a list of patches with metadata.
+        """Cache a list of patches with metadata and traceability info.
         
         Args:
             patches: List of Patch objects to cache
@@ -687,8 +971,56 @@ class PatchYielder:
         hash_dir = cache_dir / cache_hash
         hash_dir.mkdir(exist_ok=True)
         
-        # Determine chunk size and create files
-        chunk_size = 1000  # patches per file
+        # Create traceability JSON file for the hash folder
+        metadata_file = hash_dir / "cache_metadata.json"
+        if not metadata_file.exists():
+            # Collect unique sources and metadata for traceability
+            unique_dates = sorted(set(p.date for p in patches))
+            unique_orbits = sorted(set(p.orbit for p in patches))
+            unique_classes = sorted(set(p.class_id for p in patches))
+            unique_src_files = sorted(set(str(f) for p in patches for f in p.src_files))
+            
+            # Convert all values to JSON-serializable types
+            def json_safe(obj):
+                """Convert numpy types to native Python types."""
+                if hasattr(obj, 'item'):  # numpy scalar
+                    return obj.item()
+                elif isinstance(obj, (list, tuple)):
+                    return [json_safe(item) for item in obj]
+                elif isinstance(obj, dict):
+                    return {str(k): json_safe(v) for k, v in obj.items()}
+                else:
+                    return obj
+            
+            cache_metadata = {
+                "cache_hash": cache_hash,
+                "data_mode": mode.value,
+                "creation_time": datetime.datetime.now().isoformat(),
+                "total_patches": len(patches),
+                "patch_size": int(self.config.neural_network.patch_size),
+                "statistics": {
+                    "dates": [str(d) for d in unique_dates],
+                    "orbits": [str(o) for o in unique_orbits], 
+                    "classes": [int(c) for c in unique_classes],
+                    "class_distribution": {str(k): int(v) for k, v in pd.Series([p.class_id for p in patches]).value_counts().sort_index().items()}
+                },
+                "source_files": unique_src_files[:10],  # First 10 to avoid huge lists
+                "source_file_count": len(unique_src_files),
+                "config_info": {
+                    "n_patches_per_feature": int(self.config.n_patches_per_feature),
+                    "n_patches_per_area": float(self.config.n_patches_per_area),
+                    "target_epsg": str(self.target_epsg),
+                    "batch_size": int(self.config.neural_network.batch_size)
+                }
+            }
+            
+            with open(metadata_file, 'w') as f:
+                import json
+                json.dump(cache_metadata, f, indent=2)
+            logger.info(f"Created traceability metadata: {metadata_file.name}")
+        
+        # Use larger chunk size for fewer files (10,000 patches per file instead of 1,000)
+        chunk_size = 10000  # patches per file - 10x larger than before
         
         for i in range(0, len(patches), chunk_size):
             chunk = patches[i:i + chunk_size]
@@ -714,6 +1046,7 @@ class PatchYielder:
                     'class': patch.class_id,
                     'date': patch.date,
                     'orbit': patch.orbit,
+                    'data_mode': patch.data_mode.value,
                     'src_vv': str(patch.src_files[0]),
                     'src_vh': str(patch.src_files[1])
                 })
@@ -723,10 +1056,11 @@ class PatchYielder:
             gpkg_file = hash_dir / f"patches_{n_start:06d}-{n_end:06d}.gpkg"
             gdf.to_file(gpkg_file, driver='GPKG')
         
-        logger.info(f"Cached {len(patches)} patches in {hash_dir}")
+        logger.info(f"Cached {len(patches)} patches in {hash_dir} ({len(list(hash_dir.glob('*.pkl')))} files)")
     
     def _extract_patches_to_objects(self, polygon_row: pd.Series, vv_src: rasterio.DatasetReader, 
-                                   vh_src: rasterio.DatasetReader, image_tuple: ImageTuple) -> List[Patch]:
+                                   vh_src: rasterio.DatasetReader, image_tuple: ImageTuple, 
+                                   mode: DataMode) -> List[Patch]:
         """Extract patches as Patch objects with full metadata.
         
         Args:
@@ -734,6 +1068,7 @@ class PatchYielder:
             vv_src: VV polarization raster dataset reader
             vh_src: VH polarization raster dataset reader
             image_tuple: ImageTuple containing metadata
+            mode: Data mode (train/validation/test)
             
         Returns:
             List of Patch objects
@@ -769,8 +1104,9 @@ class PatchYielder:
         if len(valid_coords[0]) == 0:
             return []
         
-        # Randomly sample patch centers from valid pixels
-        max_patches = min(10, len(valid_coords[0]))  # Reduced limit for faster processing
+        # Calculate dynamic patch limit based on config parameters
+        max_patches = self._calculate_max_patches_for_polygon(geometry, patch_size)
+        max_patches = min(max_patches, len(valid_coords[0]))  # Can't exceed available valid pixels
         if max_patches == 0:
             return []
         
@@ -836,7 +1172,8 @@ class PatchYielder:
                     orbit=orbit,
                     src_files=(image_tuple.vv_path, image_tuple.vh_path),
                     date=image_tuple.date,
-                    class_id=class_id
+                    class_id=class_id,
+                    data_mode=mode
                 )
                 
                 patches.append(patch)
@@ -874,8 +1211,18 @@ class PatchYielder:
         
         # Keep track of opened datasets and image usage
         opened_datasets = {}
-        image_usage_counter = {tuple_obj.date: {class_id: 0 for class_id in self.config.classes} 
-                              for tuple_obj in self.image_tuples}
+        # Create unique keys for each image tuple to match polygon_image_intersections
+        image_usage_counter = {}
+        def extract_time_from_filename(filename: str) -> str:
+            """Extract HHMMSS from S1 filename, e.g., 054221 from S1A_IW_GRDH_1SDV_20220611T054221_..."""
+            import re
+            time_match = re.search(r'T(\d{6})', filename)
+            return time_match.group(1) if time_match else filename[17:23]  # fallback
+            
+        for i, tuple_obj in enumerate(self.image_tuples):
+            time_str = extract_time_from_filename(tuple_obj.vv_path.name)
+            unique_key = f"{tuple_obj.date}_{time_str}_{i}"
+            image_usage_counter[unique_key] = {class_id: 0 for class_id in self.config.classes}
         current_image_idx = 0
         
         def get_open_datasets(image_tuple: ImageTuple) -> Tuple[rasterio.DatasetReader, rasterio.DatasetReader]:
@@ -887,15 +1234,18 @@ class PatchYielder:
                 opened_datasets[tuple_key] = (vv_src, vh_src)
             return opened_datasets[tuple_key]
         
-        def is_image_exhausted(image_date: str) -> bool:
+        def is_image_exhausted(image_tuple: ImageTuple) -> bool:
             """Check if current image is exhausted for all classes."""
+            tuple_index = self.image_tuples.index(image_tuple)
+            time_str = extract_time_from_filename(image_tuple.vv_path.name)
+            unique_key = f"{image_tuple.date}_{time_str}_{tuple_index}"
             return all(count >= exhaustion_threshold 
-                      for count in image_usage_counter[image_date].values())
+                      for count in image_usage_counter[unique_key].values())
         
         def get_next_available_image() -> Optional[ImageTuple]:
             """Get next available (non-exhausted) image tuple."""
             for i, tuple_obj in enumerate(self.image_tuples):
-                if not is_image_exhausted(tuple_obj.date):
+                if not is_image_exhausted(tuple_obj):
                     return tuple_obj
             return None
         
@@ -906,8 +1256,11 @@ class PatchYielder:
                 if current_tuple is None:
                     logger.info("All images exhausted, cycling back to start")
                     # Reset counters and start over
-                    image_usage_counter = {tuple_obj.date: {class_id: 0 for class_id in self.config.classes} 
-                                          for tuple_obj in self.image_tuples}
+                    image_usage_counter = {}
+                    for i, tuple_obj in enumerate(self.image_tuples):
+                        time_str = extract_time_from_filename(tuple_obj.vv_path.name)
+                        unique_key = f"{tuple_obj.date}_{time_str}_{i}"
+                        image_usage_counter[unique_key] = {class_id: 0 for class_id in self.config.classes}
                     current_tuple = self.image_tuples[0]
                 
                 logger.debug(f"Using image tuple: {current_tuple.date}")
@@ -922,7 +1275,10 @@ class PatchYielder:
                         continue
                     
                     # Skip if this class is exhausted for current image
-                    if image_usage_counter[current_tuple.date][class_id] >= exhaustion_threshold:
+                    tuple_index = self.image_tuples.index(current_tuple)
+                    time_str = extract_time_from_filename(current_tuple.vv_path.name)
+                    unique_key = f"{current_tuple.date}_{time_str}_{tuple_index}"
+                    if image_usage_counter[unique_key][class_id] >= exhaustion_threshold:
                         continue
                         
                     class_data = class_groups.get_group(class_id)
@@ -934,11 +1290,17 @@ class PatchYielder:
                     
                     while patches_collected < patches_needed and attempts < max_attempts:
                         # Check if we've exhausted this class for current image
-                        if image_usage_counter[current_tuple.date][class_id] >= exhaustion_threshold:
+                        tuple_index = self.image_tuples.index(current_tuple)
+                        time_str = extract_time_from_filename(current_tuple.vv_path.name)
+                        unique_key = f"{current_tuple.date}_{time_str}_{tuple_index}"
+                        if image_usage_counter[unique_key][class_id] >= exhaustion_threshold:
                             break
                         
                         # Use pre-computed intersection mapping for efficiency
-                        intersecting_indices = self.polygon_image_intersections.get(current_tuple.date, set())
+                        tuple_index = self.image_tuples.index(current_tuple)
+                        time_str = extract_time_from_filename(current_tuple.vv_path.name)
+                        unique_key = f"{current_tuple.date}_{time_str}_{tuple_index}"
+                        intersecting_indices = self.polygon_image_intersections.get(unique_key, set())
                         class_indices = set(class_data.index)
                         valid_indices = intersecting_indices & class_indices
                         
@@ -952,7 +1314,7 @@ class PatchYielder:
                         
                         # Extract patches from polygon
                         patch_objects = self._extract_patches_to_objects(
-                            polygon_row, vv_src, vh_src, current_tuple
+                            polygon_row, vv_src, vh_src, current_tuple, mode
                         )
                         patches = [p.data for p in patch_objects]  # Extract data for backward compatibility
                         
@@ -973,7 +1335,10 @@ class PatchYielder:
                                 patches_collected += 1
                                 
                                 # Increment usage counter
-                                image_usage_counter[current_tuple.date][class_id] += 1
+                                tuple_index = self.image_tuples.index(current_tuple)
+                                time_str = extract_time_from_filename(current_tuple.vv_path.name)
+                                unique_key = f"{current_tuple.date}_{time_str}_{tuple_index}"
+                                image_usage_counter[unique_key][class_id] += 1
                         
                         attempts += 1
                 

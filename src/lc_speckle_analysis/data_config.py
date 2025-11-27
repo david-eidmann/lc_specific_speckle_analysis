@@ -25,7 +25,7 @@ class NeuralNetworkConfig:
 class TrainingDataConfig:
     """Configuration for training data."""
     
-    train_data_path: str
+    train_data_paths: List[str]
     column_id: str
     classes: List[int]
     orbits: List[str]
@@ -34,6 +34,8 @@ class TrainingDataConfig:
     num_workers: int
     max_memory_mb: int
     output_format: str
+    n_patches_per_feature: int
+    n_patches_per_area: float
     neural_network: NeuralNetworkConfig
 
     @classmethod
@@ -67,15 +69,34 @@ class TrainingDataConfig:
                 raise ValueError("Missing [training_data] section in configuration")
             
             train_section = config['training_data']
-            train_data_path = train_section.get('path')
+            # Support both 'path' and 'paths' for backward compatibility
+            paths_str = train_section.get('paths') or train_section.get('path')
             column_id = train_section.get('column_id')
             classes_str = train_section.get('classes')
             
-            if not all([train_data_path, column_id, classes_str]):
+            if not all([paths_str, column_id, classes_str]):
                 raise ValueError("Missing required fields in [training_data] section")
             
+            # Parse multiple paths (comma-separated) and expand wildcards
+            import glob
+            train_data_paths = []
+            for path_pattern in paths_str.split(','):
+                path_pattern = path_pattern.strip()
+                if '*' in path_pattern:
+                    # Expand wildcards
+                    matched_paths = glob.glob(path_pattern)
+                    if matched_paths:
+                        train_data_paths.extend(matched_paths)
+                    else:
+                        logger.warning(f"No files found matching pattern: {path_pattern}")
+                else:
+                    train_data_paths.append(path_pattern)
+            
+            if not train_data_paths:
+                raise ValueError("No training data files found")
+            
             classes = [int(x.strip()) for x in classes_str.split(',')]
-            logger.info(f"Training data path: {train_data_path}")
+            logger.info(f"Training data paths: {train_data_paths}")
             logger.info(f"Column ID: {column_id}")
             logger.info(f"Classes: {classes}")
             
@@ -103,13 +124,18 @@ class TrainingDataConfig:
                 num_workers = processing_section.getint('num_workers', 4)
                 max_memory_mb = processing_section.getint('max_memory_mb', 2048)
                 output_format = processing_section.get('output_format', 'npz')
+                n_patches_per_feature = processing_section.getint('n_patches_per_feature', 50)
+                n_patches_per_area = processing_section.getfloat('n_patches_per_area', 1.0)
             else:
                 # Use defaults if processing section is missing
                 num_workers = 4
                 max_memory_mb = 2048
                 output_format = 'npz'
+                n_patches_per_feature = 50
+                n_patches_per_area = 1.0
             
             logger.info(f"Processing config - Workers: {num_workers}, Memory: {max_memory_mb}MB, Format: {output_format}")
+            logger.info(f"Patch extraction - Per feature: {n_patches_per_feature}, Per area ratio: {n_patches_per_area}")
             
             # Parse neural network section
             if 'neural_network' not in config:
@@ -143,7 +169,7 @@ class TrainingDataConfig:
             logger.info(f"Neural network config - Patch size: {patch_size}, Batch size: {batch_size}, Architecture: {network_architecture_id}")
             
             return cls(
-                train_data_path=train_data_path,
+                train_data_paths=train_data_paths,
                 column_id=column_id,
                 classes=classes,
                 orbits=orbits,
@@ -152,6 +178,8 @@ class TrainingDataConfig:
                 num_workers=num_workers,
                 max_memory_mb=max_memory_mb,
                 output_format=output_format,
+                n_patches_per_feature=n_patches_per_feature,
+                n_patches_per_area=n_patches_per_area,
                 neural_network=neural_network_config
             )
             
