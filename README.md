@@ -18,7 +18,7 @@ lc_specific_speckle_analysis/
 ├── notebooks/                   # Jupyter notebooks for analysis
 │   └── 01_project_setup.ipynb  # Project setup notebook
 ├── data/
-│   ├── train_data.txt          # Training data configuration
+│   ├── config.conf             # Structured configuration file (INI format)
 │   ├── raw/                    # Raw data files
 │   └── processed/              # Processed data files
 ├── results/                    # Analysis results and outputs

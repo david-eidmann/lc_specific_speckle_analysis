@@ -10,6 +10,18 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass
+class NeuralNetworkConfig:
+    """Configuration for neural network parameters."""
+    patch_size: int
+    batch_size: int
+    network_architecture_id: str
+    dropout_rate: float
+    activation_function: str
+    optimizer: str
+    layer_sizes: List[int]
+
+
+@dataclass
 class TrainingDataConfig:
     """Configuration for training data."""
     
@@ -22,6 +34,7 @@ class TrainingDataConfig:
     num_workers: int
     max_memory_mb: int
     output_format: str
+    neural_network: NeuralNetworkConfig
 
     @classmethod
     def from_file(cls, config_path: Path) -> "TrainingDataConfig":
@@ -98,6 +111,37 @@ class TrainingDataConfig:
             
             logger.info(f"Processing config - Workers: {num_workers}, Memory: {max_memory_mb}MB, Format: {output_format}")
             
+            # Parse neural network section
+            if 'neural_network' not in config:
+                raise ValueError("Missing [neural_network] section in configuration")
+            
+            nn_section = config['neural_network']
+            patch_size = nn_section.getint('patch_size')
+            batch_size = nn_section.getint('batch_size') 
+            network_architecture_id = nn_section.get('network_architecture_id')
+            dropout_rate = nn_section.getfloat('dropout_rate')
+            activation_function = nn_section.get('activation_function')
+            optimizer = nn_section.get('optimizer')
+            layer_sizes_str = nn_section.get('layer_sizes')
+            
+            if not all([patch_size, batch_size, network_architecture_id, dropout_rate is not None, 
+                       activation_function, optimizer, layer_sizes_str]):
+                raise ValueError("Missing required fields in [neural_network] section")
+            
+            layer_sizes = [int(x.strip()) for x in layer_sizes_str.split(',')]
+            
+            neural_network_config = NeuralNetworkConfig(
+                patch_size=patch_size,
+                batch_size=batch_size,
+                network_architecture_id=network_architecture_id,
+                dropout_rate=dropout_rate,
+                activation_function=activation_function,
+                optimizer=optimizer,
+                layer_sizes=layer_sizes
+            )
+            
+            logger.info(f"Neural network config - Patch size: {patch_size}, Batch size: {batch_size}, Architecture: {network_architecture_id}")
+            
             return cls(
                 train_data_path=train_data_path,
                 column_id=column_id,
@@ -107,7 +151,8 @@ class TrainingDataConfig:
                 file_pattern=file_pattern,
                 num_workers=num_workers,
                 max_memory_mb=max_memory_mb,
-                output_format=output_format
+                output_format=output_format,
+                neural_network=neural_network_config
             )
             
         except Exception as e:

@@ -27,6 +27,15 @@ file_pattern = /path/to/data/{orbit}/*.tif
 num_workers = 2
 max_memory_mb = 1024
 output_format = npz
+
+[neural_network]
+patch_size = 8
+batch_size = 16
+network_architecture_id = test_arch
+dropout_rate = 0.1
+activation_function = relu
+optimizer = adam
+layer_sizes = 32,64
 """
     
     def test_config_parsing(self):
@@ -47,6 +56,15 @@ output_format = npz
             self.assertEqual(config.num_workers, 2)
             self.assertEqual(config.max_memory_mb, 1024)
             self.assertEqual(config.output_format, "npz")
+            
+            # Test neural network config
+            self.assertEqual(config.neural_network.patch_size, 8)
+            self.assertEqual(config.neural_network.batch_size, 16)
+            self.assertEqual(config.neural_network.network_architecture_id, "test_arch")
+            self.assertEqual(config.neural_network.dropout_rate, 0.1)
+            self.assertEqual(config.neural_network.activation_function, "relu")
+            self.assertEqual(config.neural_network.optimizer, "adam")
+            self.assertEqual(config.neural_network.layer_sizes, [32, 64])
             
         finally:
             os.unlink(temp_path)
