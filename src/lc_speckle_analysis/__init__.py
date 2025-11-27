@@ -28,14 +28,11 @@ def load_training_config(config_path: Path = None) -> TrainingDataConfig:
     if config_path is None:
         config_path = PROJECT_ROOT / "data" / "config.conf"
     
-    try:
-        training_config = TrainingDataConfig.from_file(config_path)
-        logger.info("Training configuration loaded successfully")
-        return training_config
-    except Exception as e:
-        logger.error(f"Failed to load training configuration: {e}")
-        raise
-
+    
+    training_config = TrainingDataConfig.from_file(config_path)
+    logger.info("Training configuration loaded successfully")
+    return training_config
+    
 def get_training_config() -> TrainingDataConfig:
     """Get the current training configuration.
     
@@ -51,10 +48,8 @@ def get_training_config() -> TrainingDataConfig:
     return training_config
 
 # Auto-load configuration on import if file exists
-try:
-    default_config_path = PROJECT_ROOT / "data" / "config.conf"
-    if default_config_path.exists():
-        load_training_config()
-        logger.info("Auto-loaded training configuration on import")
-except Exception as e:
-    logger.warning(f"Could not auto-load training configuration: {e}")
+
+default_config_path = PROJECT_ROOT / "data" / "config.conf"
+if default_config_path.exists():
+    load_training_config()
+    logger.info("Auto-loaded training configuration on import")
