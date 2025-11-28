@@ -20,6 +20,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import classification_report, confusion_matrix
 import seaborn as sns
+from torchviz import make_dot
+import torchsummary
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -82,6 +84,9 @@ class PatchDataset(Dataset):
         unique_classes, counts = np.unique(self.labels, return_counts=True)
         class_dist = dict(zip(unique_classes, counts))
         logger.info(f"{mode.value} class distribution: {class_dist}")
+        
+        # Log total available patches for usage tracking
+        logger.info(f"Total available patches: {len(self.patches)}")
     
     def __len__(self):
         return len(self.patches)
@@ -123,6 +128,10 @@ class PatchDataset(Dataset):
         min_count = min(counts)
         logger.info(f"Balancing classes to minimum count: {min_count}")
         logger.info(f"Original class distribution: {class_counts}")
+        
+        # Log total available patches for usage tracking
+        n_available_patches = len(self.patches)
+        logger.info(f"Available patches before balancing: {n_available_patches}")
         
         # Create balanced dataset
         balanced_patches = []
@@ -230,11 +239,18 @@ class ModelTrainer:
             'lr': []
         }
         
+        # Patch usage tracking
+        self.total_patches_used = 0
+        self.total_patches_available = 0  # Will be set when datasets are loaded
+        
         # Map config classes to model output indices
         self.class_to_idx = {cls: idx for idx, cls in enumerate(config.classes)}
         self.idx_to_class = {idx: cls for cls, idx in self.class_to_idx.items()}
         
         logger.info(f"Model initialized with {sum(p.numel() for p in self.model.parameters()):,} parameters")
+        
+        # Plot and save network structure
+        self._plot_network_structure(config)
     
     def _create_model(self, config: TrainingDataConfig):
         """Create model based on architecture configuration."""
@@ -247,6 +263,66 @@ class ModelTrainer:
         else:
             logger.warning(f"Unknown architecture '{architecture_id}', defaulting to test_flat_2_layers")
             return TestFlat2Layers(config)
+    
+    def _plot_network_structure(self, config: TrainingDataConfig):
+        """Plot and save network structure visualization."""
+        try:
+            # Create sample input tensor
+            patch_size = config.neural_network.patch_size
+            sample_input = torch.randn(1, patch_size, patch_size, 2).to(self.device)
+            
+            # Get model output for visualization
+            self.model.eval()
+            with torch.no_grad():
+                output = self.model(sample_input)
+            
+            # Create computational graph visualization
+            try:
+                dot = make_dot(output, params=dict(self.model.named_parameters()))
+                dot.attr(rankdir='TB')  # Top to bottom layout
+                dot.attr('graph', size='12,16')  # Larger size for readability
+                
+                # Save as PDF and PNG
+                network_file = self.plots_dir / f"network_structure_{config.neural_network.network_architecture_id}"
+                dot.render(str(network_file), format='png', cleanup=True)
+                dot.render(str(network_file), format='pdf', cleanup=True)
+                
+                logger.info(f"Network structure saved to: {network_file}.png/.pdf")
+            except Exception as e:
+                logger.warning(f"Could not create computational graph: {e}")
+            
+            # Create model summary
+            try:
+                import io
+                from contextlib import redirect_stdout
+                
+                # Capture torchsummary output
+                f = io.StringIO()
+                with redirect_stdout(f):
+                    if config.neural_network.network_architecture_id.lower() == 'test_conv2d':
+                        # For Conv2D: input is (batch, channels, height, width)
+                        torchsummary.summary(self.model, (2, patch_size, patch_size), device=str(self.device))
+                    else:
+                        # For flat layers: input is flattened
+                        torchsummary.summary(self.model, (patch_size * patch_size * 2,), device=str(self.device))
+                
+                summary_text = f.getvalue()
+                
+                # Save summary to text file
+                summary_file = self.plots_dir / f"model_summary_{config.neural_network.network_architecture_id}.txt"
+                with open(summary_file, 'w', encoding='utf-8') as f:
+                    f.write(f"Model Architecture: {config.neural_network.network_architecture_id}\n")
+                    f.write(f"Generated at: {datetime.now().isoformat()}\n")
+                    f.write(f"Config Hash: {self.config_hash}\n")
+                    f.write("=" * 80 + "\n\n")
+                    f.write(summary_text)
+                
+                logger.info(f"Model summary saved to: {summary_file}")
+            except Exception as e:
+                logger.warning(f"Could not create model summary: {e}")
+                
+        except Exception as e:
+            logger.error(f"Error plotting network structure: {e}")
     
     def _save_config_json(self, config: TrainingDataConfig):
         """Save complete configuration as JSON for reconstructability."""
@@ -323,6 +399,10 @@ class ModelTrainer:
         self.train_dataset = PatchDataset(self.patch_yielder, DataMode.TRAIN, self.config)
         self.val_dataset = PatchDataset(self.patch_yielder, DataMode.VALIDATION, self.config)
         
+        # Initialize patch usage tracking
+        self.total_patches_available = len(self.train_dataset)
+        logger.info(f"Patch usage tracking initialized: 0/{self.total_patches_available} patches used")
+        
         # Create data loaders
         batch_size = self.config.neural_network.batch_size
         
@@ -375,11 +455,18 @@ class ModelTrainer:
             correct_predictions += pred.eq(target_mapped).sum().item()
             total_predictions += target.size(0)
             
+            # Update patch usage counter
+            self.total_patches_used += target.size(0)
+            
             if batch_idx % 10 == 0:
                 logger.debug(f"Batch {batch_idx}/{len(self.train_loader)}: Loss {loss.item():.6f}")
         
         avg_loss = total_loss / len(self.train_loader)
         accuracy = correct_predictions / total_predictions
+        
+        # Log patch usage ratio
+        usage_ratio = self.total_patches_used / self.total_patches_available if self.total_patches_available > 0 else 0.0
+        logger.debug(f"Patch usage: {self.total_patches_used}/{self.total_patches_available} = {usage_ratio:.4f} ({usage_ratio*100:.2f}%)")
         
         return avg_loss, accuracy
     
@@ -800,7 +887,10 @@ class ModelTrainer:
                 "validation_samples": len(self.val_loader.dataset),
                 "test_samples": len(test_metrics['predictions']),
                 "train_batches": len(self.train_loader),
-                "validation_batches": len(self.val_loader)
+                "validation_batches": len(self.val_loader),
+                "total_patches_available": self.total_patches_available,
+                "total_patches_used": self.total_patches_used,
+                "patch_usage_ratio": self.total_patches_used / self.total_patches_available if self.total_patches_available > 0 else 0.0
             }
         }
         
@@ -874,6 +964,10 @@ def main():
         
         logger.info("✅ Training and evaluation completed successfully!")
         logger.info(f"📊 Summary saved to: {summary_path}")
+        
+        # Log final patch usage statistics
+        final_usage_ratio = trainer.total_patches_used / trainer.total_patches_available if trainer.total_patches_available > 0 else 0.0
+        logger.info(f"📈 Patch Usage: {trainer.total_patches_used}/{trainer.total_patches_available} = {final_usage_ratio:.4f} ({final_usage_ratio*100:.2f}%)")
         logger.info(f"🎯 Final Results: Val Acc={best_val_acc:.4f}, Test Acc={test_acc:.4f}")
         
     except Exception as e:
