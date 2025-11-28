@@ -69,6 +69,10 @@ class PatchDataset(Dataset):
         load_time = time.time() - start_time
         logger.info(f"Loaded {len(self.patches)} {mode.value} patches in {load_time:.2f}s")
         
+        # Apply class balancing if configured
+        if self.config.equal_class_dist:
+            self._balance_class_distribution()
+        
         # Convert to numpy arrays for efficiency
         self.patches = np.array(self.patches)
         self.labels = np.array(self.labels)
@@ -104,6 +108,62 @@ class PatchDataset(Dataset):
             patch_tensor = self.transform(patch_tensor)
         
         return patch_tensor, label_tensor
+    
+    def _balance_class_distribution(self):
+        """Balance class distribution by subsampling to minimum class count."""
+        if not self.patches or not self.labels:
+            return
+        
+        # Count samples per class
+        unique_classes, counts = np.unique(self.labels, return_counts=True)
+        class_counts = dict(zip(unique_classes, counts))
+        
+        # Find minimum class count
+        min_count = min(counts)
+        logger.info(f"Balancing classes to minimum count: {min_count}")
+        logger.info(f"Original class distribution: {class_counts}")
+        
+        # Create balanced dataset
+        balanced_patches = []
+        balanced_labels = []
+        
+        # Randomly sample from each class
+        np.random.seed(42)  # For reproducibility
+        
+        for class_id in unique_classes:
+            # Find indices for this class
+            class_indices = [i for i, label in enumerate(self.labels) if label == class_id]
+            
+            # If we have fewer samples than min_count, we'll repeat samples
+            if len(class_indices) < min_count:
+                # Repeat the indices to reach min_count (with replacement)
+                selected_indices = np.random.choice(class_indices, size=min_count, replace=True)
+                logger.info(f"Class {class_id}: Upsampling from {len(class_indices)} to {min_count} samples")
+            else:
+                # Randomly select min_count samples without replacement
+                selected_indices = np.random.choice(class_indices, size=min_count, replace=False)
+                logger.info(f"Class {class_id}: Downsampling from {len(class_indices)} to {min_count} samples")
+            
+            # Add selected patches and labels
+            for idx in selected_indices:
+                balanced_patches.append(self.patches[idx])
+                balanced_labels.append(self.labels[idx])
+        
+        # Replace original data with balanced data
+        self.patches = balanced_patches
+        self.labels = balanced_labels
+        
+        # Shuffle the balanced dataset
+        combined = list(zip(self.patches, self.labels))
+        np.random.shuffle(combined)
+        self.patches, self.labels = zip(*combined)
+        self.patches = list(self.patches)
+        self.labels = list(self.labels)
+        
+        # Log new distribution
+        unique_classes, counts = np.unique(self.labels, return_counts=True)
+        balanced_class_counts = dict(zip(unique_classes, counts))
+        logger.info(f"Balanced class distribution: {balanced_class_counts}")
 
 
 class ModelTrainer:
@@ -128,15 +188,15 @@ class ModelTrainer:
         logger.info(f"Using device: {self.device}")
         
         # Create output directories with config hash to prevent conflicts
-        config_hash = config.get_config_hash()
-        self.output_dir = project_root / "data" / "training_output" / f"run_{config_hash}"
+        self.config_hash = config.get_config_hash()
+        self.output_dir = project_root / "data" / "training_output" / f"run_{self.config_hash}"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
-        logger.info(f"Using config hash: {config_hash}")
+        logger.info(f"Using config hash: {self.config_hash}")
         logger.info(f"Training output directory: {self.output_dir}")
         
         # Save complete configuration for reconstructability
-        self._save_config_json(config, config_hash)
+        self._save_config_json(config)
         
         self.models_dir = self.output_dir / "models"
         self.plots_dir = self.output_dir / "plots"
@@ -175,7 +235,7 @@ class ModelTrainer:
         
         logger.info(f"Model initialized with {sum(p.numel() for p in self.model.parameters()):,} parameters")
     
-    def _save_config_json(self, config: TrainingDataConfig, config_hash: str):
+    def _save_config_json(self, config: TrainingDataConfig):
         """Save complete configuration as JSON for reconstructability."""
         from dataclasses import asdict
         import json
@@ -186,14 +246,14 @@ class ModelTrainer:
         
         # Add metadata for reconstructability
         config_dict['_metadata'] = {
-            'config_hash': config_hash,
+            'config_hash': self.config_hash,
             'generated_at': datetime.now().isoformat(),
             'git_commit': self._get_git_commit(),
             'python_env': self._get_python_env_info()
         }
         
         # Save to JSON file
-        config_file = self.output_dir / f"config_{config_hash}.json"
+        config_file = self.output_dir / f"config_{self.config_hash}.json"
         with open(config_file, 'w', encoding='utf-8') as f:
             json.dump(config_dict, f, indent=2, default=str, ensure_ascii=False)
         
@@ -689,10 +749,13 @@ class ModelTrainer:
                 "batch_size": self.config.neural_network.batch_size,
                 "architecture": self.config.neural_network.network_architecture_id,
                 "optimizer": self.config.neural_network.optimizer,
-                "learning_rate": self.config.neural_network.learning_rate,
+                "dropout_rate": self.config.neural_network.dropout_rate,
+                "activation_function": self.config.neural_network.activation_function,
+                "layer_sizes": self.config.neural_network.layer_sizes,
                 "n_epochs": self.config.neural_network.n_epochs,
                 "early_stopping_patience": self.config.neural_network.early_stopping_patience,
                 "data_with_zero_mean": self.config.data_with_zero_mean,
+                "equal_class_dist": self.config.equal_class_dist,
                 "orbits": self.config.orbits,
                 "dates": self.config.dates
             },
@@ -742,6 +805,7 @@ class ModelTrainer:
             f.write(f"Config Hash: {self.config_hash}\n")
             f.write(f"Architecture: {self.config.neural_network.network_architecture_id}\n")
             f.write(f"Zero Mean: {self.config.data_with_zero_mean}\n")
+            f.write(f"Equal Class Distribution: {self.config.equal_class_dist}\n")
             f.write(f"Epochs: {len(self.history['train_loss'])}\n")
             f.write(f"Best Validation Accuracy: {best_val_acc:.4f}\n")
             f.write(f"Test Accuracy: {test_metrics['accuracy']:.4f}\n")

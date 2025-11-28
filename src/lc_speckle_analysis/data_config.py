@@ -42,6 +42,7 @@ class TrainingDataConfig:
     n_patches_per_area: float
     neural_network: NeuralNetworkConfig
     data_with_zero_mean: bool = False
+    equal_class_dist: bool = False
 
     @classmethod
     def from_file(cls, config_path: Path) -> "TrainingDataConfig":
@@ -104,11 +105,13 @@ class TrainingDataConfig:
         
         # Parse data preprocessing options with defaults
         data_with_zero_mean = train_section.getboolean('data_with_zero_mean', False)
+        equal_class_dist = train_section.getboolean('equal_class_dist', False)
         
         logger.info(f"Training data paths: {train_data_paths}")
         logger.info(f"Column ID: {column_id}")
         logger.info(f"Classes: {classes}")
         logger.info(f"Data with zero mean: {data_with_zero_mean}")
+        logger.info(f"Equal class distribution: {equal_class_dist}")
         
         # Parse satellite data section
         if 'satellite_data' not in config:
@@ -197,7 +200,8 @@ class TrainingDataConfig:
             n_patches_per_feature=n_patches_per_feature,
             n_patches_per_area=n_patches_per_area,
             neural_network=neural_network_config,
-            data_with_zero_mean=data_with_zero_mean
+            data_with_zero_mean=data_with_zero_mean,
+            equal_class_dist=equal_class_dist
         )
             
     def get_file_paths(self) -> List[Path]:
