@@ -27,6 +27,7 @@ sys.path.insert(0, str(project_root))
 
 from .data_config import TrainingDataConfig
 from .network_architectures.test_flat_2_layers import TestFlat2Layers
+from .network_architectures.test_conv2d import TestConv2D
 from .patch_yielder import PatchYielder, DataMode
 
 # Set up logging
@@ -205,8 +206,8 @@ class ModelTrainer:
         for dir_path in [self.models_dir, self.plots_dir, self.logs_dir]:
             dir_path.mkdir(exist_ok=True)
         
-        # Initialize model
-        self.model = TestFlat2Layers(config).to(self.device)
+        # Initialize model based on architecture
+        self.model = self._create_model(config).to(self.device)
         
         # Initialize optimizer
         if config.neural_network.optimizer.lower() == 'adam':
@@ -234,6 +235,18 @@ class ModelTrainer:
         self.idx_to_class = {idx: cls for cls, idx in self.class_to_idx.items()}
         
         logger.info(f"Model initialized with {sum(p.numel() for p in self.model.parameters()):,} parameters")
+    
+    def _create_model(self, config: TrainingDataConfig):
+        """Create model based on architecture configuration."""
+        architecture_id = config.neural_network.network_architecture_id.lower()
+        
+        if architecture_id == 'test_flat_2_layers':
+            return TestFlat2Layers(config)
+        elif architecture_id == 'test_conv2d':
+            return TestConv2D(config)
+        else:
+            logger.warning(f"Unknown architecture '{architecture_id}', defaulting to test_flat_2_layers")
+            return TestFlat2Layers(config)
     
     def _save_config_json(self, config: TrainingDataConfig):
         """Save complete configuration as JSON for reconstructability."""
