@@ -1,8 +1,10 @@
 """Data configuration parser for LC speckle analysis project."""
 
 import configparser
+import hashlib
+import json
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import List, Optional
 
@@ -19,6 +21,8 @@ class NeuralNetworkConfig:
     activation_function: str
     optimizer: str
     layer_sizes: List[int]
+    n_epochs: int = 50
+    early_stopping_patience: int = 10
 
 
 @dataclass
@@ -156,6 +160,10 @@ class TrainingDataConfig:
         
         layer_sizes = [int(x.strip()) for x in layer_sizes_str.split(',')]
         
+        # Parse training parameters with defaults
+        n_epochs = nn_section.getint('n_epochs', 50)
+        early_stopping_patience = nn_section.getint('early_stopping_patience', 10)
+        
         neural_network_config = NeuralNetworkConfig(
             patch_size=patch_size,
             batch_size=batch_size,
@@ -163,7 +171,9 @@ class TrainingDataConfig:
             dropout_rate=dropout_rate,
             activation_function=activation_function,
             optimizer=optimizer,
-            layer_sizes=layer_sizes
+            layer_sizes=layer_sizes,
+            n_epochs=n_epochs,
+            early_stopping_patience=early_stopping_patience
         )
         
         logger.info(f"Neural network config - Patch size: {patch_size}, Batch size: {batch_size}, Architecture: {network_architecture_id}")
@@ -226,3 +236,23 @@ class TrainingDataConfig:
             valid = False
         
         return valid
+    
+    def get_config_hash(self) -> str:
+        """Generate a unique hash for this configuration.
+        
+        This hash can be used to create unique output directories and
+        prevent conflicts when running with different configurations.
+        
+        Returns:
+            8-character hex string representing config hash
+        """
+        # Convert config to dict and create reproducible string
+        config_dict = asdict(self)
+        
+        # Sort to ensure consistent ordering
+        config_str = json.dumps(config_dict, sort_keys=True, default=str)
+        
+        # Create hash
+        config_hash = hashlib.md5(config_str.encode()).hexdigest()[:8]
+        
+        return config_hash
