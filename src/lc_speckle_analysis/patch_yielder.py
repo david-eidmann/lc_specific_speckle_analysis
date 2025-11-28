@@ -1090,39 +1090,17 @@ class PatchYielder:
         combined_info = json.dumps(cache_info, sort_keys=True)
         file_hash = hashlib.md5(combined_info.encode()).hexdigest()[:12]
         
-        # Simple filename: mode_filehash.npz
-        cache_filename = f"{mode.value}_{file_hash}.npz"
+        # Simple filename: mode_filehash.pkl
+        cache_filename = f"{mode.value}_{file_hash}.pkl"
         cache_file = cache_dir / cache_filename
         
-        # Convert patches to arrays for efficient storage
-        patch_data = np.array([p.data for p in patches])
-        patch_labels = np.array([p.class_id for p in patches])
-        
-        # Create metadata
-        metadata = {
-            'mode': mode.value,
-            'creation_time': datetime.datetime.now().isoformat(),
-            'total_patches': len(patches),
-            'patch_size': self.config.neural_network.patch_size,
-            'vv_file': str(image_tuple.vv_path),
-            'vh_file': str(image_tuple.vh_path),
-            'date': image_tuple.date,
-            'classes': sorted(set(int(p.class_id) for p in patches)),
-            'class_distribution': {str(k): int(v) for k, v in pd.Series(patch_labels).value_counts().sort_index().items()},
-            'config_hash': file_hash
-        }
-        
-        # Save patches and metadata in single NPZ file
-        np.savez_compressed(
-            cache_file,
-            patches=patch_data,
-            labels=patch_labels,
-            metadata=json.dumps(metadata).encode('utf-8')
-        )
+        # Save full Patch objects list using pickle to preserve all spatial metadata
+        with open(cache_file, 'wb') as f:
+            pickle.dump(patches, f)
         
         logger.info(f"Cached {len(patches)} patches for {image_tuple.date} in {cache_filename}")
         
-    def _load_cached_patches(self, mode: DataMode, image_tuple: ImageTuple) -> Tuple[np.ndarray, np.ndarray]:
+    def _load_cached_patches(self, mode: DataMode, image_tuple: ImageTuple) -> List[Patch]:
         """Load cached patches for a specific image file.
         
         Args:
@@ -1130,7 +1108,7 @@ class PatchYielder:
             image_tuple: ImageTuple containing the source files
             
         Returns:
-            Tuple of (patches, labels) or (None, None) if not cached
+            List of Patch objects or None if not cached
         """
         cache_dir = PROJECT_ROOT / "data" / "cache" / "patches" / mode.value
         
@@ -1149,228 +1127,32 @@ class PatchYielder:
         
         combined_info = json.dumps(cache_info, sort_keys=True)
         file_hash = hashlib.md5(combined_info.encode()).hexdigest()[:12]
-        cache_filename = f"{mode.value}_{file_hash}.npz"
+        cache_filename = f"{mode.value}_{file_hash}.pkl"
         cache_file = cache_dir / cache_filename
         
         if cache_file.exists():
             try:
-                data = np.load(cache_file, allow_pickle=True)
-                patches = data['patches']
-                labels = data['labels']
-                metadata = json.loads(data['metadata'].item().decode('utf-8'))
+                with open(cache_file, 'rb') as f:
+                    patches = pickle.load(f)
                 
                 logger.info(f"Loaded {len(patches)} cached patches for {image_tuple.date} from {cache_filename}")
-                return patches, labels
+                return patches
             except Exception as e:
                 logger.warning(f"Failed to load cached patches from {cache_filename}: {e}")
-                return None, None
+                return None
         else:
-            return None, None
+            return None
     
 
                 
     
-    def _extract_patches_to_objects(self, polygon_row: pd.Series, vv_src: rasterio.DatasetReader, 
-                                   vh_src: rasterio.DatasetReader, image_tuple: ImageTuple, 
-                                   mode: DataMode) -> List[Patch]:
-        """Extract patches as Patch objects with full metadata.
-        
-        Args:
-            polygon_row: Row from GeoDataFrame containing polygon
-            vv_src: VV polarization raster dataset reader
-            vh_src: VH polarization raster dataset reader
-            image_tuple: ImageTuple containing metadata
-            mode: Data mode (train/validation/test)
-            
-        Returns:
-            List of Patch objects
-        """
-        geometry = polygon_row.geometry
-        patch_size = self.config.neural_network.patch_size
-        class_id = polygon_row[self.config.column_id]
-        
-        # Debug logging to track polygon-image mismatch
-        polygon_index = polygon_row.name
-        image_filename = image_tuple.vv_path.name
-        logger.debug(f"Extracting patches from polygon {polygon_index} using image {image_filename}")
-        logger.debug(f"Polygon bounds: {geometry.bounds}")
-        logger.debug(f"Raster bounds: {vv_src.bounds}")
-        
-        
-        try:
-            # Mask the data with polygon (crop to polygon bounds)
-            masked_vv, mask_transform = mask(vv_src, [geometry], crop=True, filled=False)
-            masked_vh, _ = mask(vh_src, [geometry], crop=True, filled=False)
-        except ValueError as e:
-            if "Input shapes do not overlap raster" in str(e):
-                # Save detailed debugging information
-                debug_dir = PROJECT_ROOT / "data" / "cache" / "debug_overlap_errors"
-                debug_dir.mkdir(parents=True, exist_ok=True)
-                
-                # Create unique debug filename with timestamp
-                import datetime
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-                debug_base = f"overlap_error_{image_tuple.date}_{timestamp}"
-                
-                # Save polygon as GPKG
-                polygon_gdf = gpd.GeoDataFrame({
-                    'class_id': [class_id],
-                    'geometry_type': [geometry.geom_type],
-                    'area': [geometry.area],
-                    'bounds_minx': [geometry.bounds[0]],
-                    'bounds_miny': [geometry.bounds[1]], 
-                    'bounds_maxx': [geometry.bounds[2]],
-                    'bounds_maxy': [geometry.bounds[3]],
-                    'image_vv': [vv_src.name],
-                    'image_vh': [vh_src.name],
-                    'data_mode': [mode.value]
-                }, geometry=[geometry], crs=str(vv_src.crs))
-                
-                polygon_file = debug_dir / f"{debug_base}_polygon.gpkg"
-                polygon_gdf.to_file(polygon_file, driver='GPKG')
-                
-                # Save raster metadata as JSON (ensure all values are JSON-serializable)
-                raster_info = {
-                    'vv_path': str(vv_src.name),
-                    'vh_path': str(vh_src.name),
-                    'raster_bounds': [float(x) for x in vv_src.bounds],
-                    'raster_crs': str(vv_src.crs),
-                    'raster_transform': [float(x) for x in vv_src.transform],
-                    'raster_shape': [int(vv_src.height), int(vv_src.width)],
-                    'polygon_bounds': [float(x) for x in geometry.bounds],
-                    'polygon_crs': str(polygon_gdf.crs),
-                    'error_message': str(e),
-                    'error_type': type(e).__name__,
-                    'timestamp': timestamp,
-                    'patch_size': int(patch_size),
-                    'class_id': int(class_id) if hasattr(class_id, 'item') else class_id
-                }
-                
-                import json
-                metadata_file = debug_dir / f"{debug_base}_metadata.json"
-                with open(metadata_file, 'w') as f:
-                    json.dump(raster_info, f, indent=2)
-                
-                # Save polygon row as pickle for complete context
-                import pickle
-                polygon_file_pkl = debug_dir / f"{debug_base}_polygon_row.pkl"
-                with open(polygon_file_pkl, 'wb') as f:
-                    pickle.dump(polygon_row, f)
-                
-                logger.error(f"Overlap error saved to debug files: {debug_base}_*")
-                logger.error(f"  Polygon: {polygon_file}")
-                logger.error(f"  Metadata: {metadata_file}")
-                logger.error(f"  Polygon row: {polygon_file_pkl}")
-                logger.error(f"  Error: {e}")
-                
-                # Now raise the error with additional context
-                raise ValueError(f"Input shapes do not overlap raster. Debug files saved: {debug_base}_*") from e
-            else:
-                # Re-raise other ValueError exceptions
-                raise
-        
-        # Extract patches from masked area
-        patches = []
-        masked_vv = masked_vv[0]  # Remove band dimension
-        masked_vh = masked_vh[0]
-        
-        # Find valid (non-masked, non-NaN) areas
-        valid_mask = ~masked_vv.mask & ~masked_vh.mask & ~np.isnan(masked_vv) & ~np.isnan(masked_vh)
-        valid_mask = valid_mask & (masked_vv != 0) & (masked_vh != 0)  # Also exclude zeros
-        
-        if not np.any(valid_mask):
-            return []
-        
-        # Get coordinates of valid pixels
-        valid_coords = np.where(valid_mask)
-        
-        if len(valid_coords[0]) == 0:
-            return []
-        
-        # Calculate dynamic patch limit based on config parameters
-        max_patches = self._calculate_max_patches_for_polygon(geometry, patch_size)
-        max_patches = min(max_patches, len(valid_coords[0]))  # Can't exceed available valid pixels
-        if max_patches == 0:
-            return []
-        
-        selected_indices = np.random.choice(len(valid_coords[0]), 
-                                          size=min(max_patches, len(valid_coords[0])), 
-                                          replace=False)
-        
-        half_patch = patch_size // 2
-        orbit = self.config.orbits[0] if self.config.orbits else "unknown"
-        
-        for idx in selected_indices:
-            center_y = valid_coords[0][idx] 
-            center_x = valid_coords[1][idx]
-            
-            # Extract patch around center
-            y_start = max(0, center_y - half_patch)
-            y_end = min(masked_vv.shape[0], center_y + half_patch + 1)
-            x_start = max(0, center_x - half_patch) 
-            x_end = min(masked_vv.shape[1], center_x + half_patch + 1)
-            
-            # Skip if patch is too small
-            if (y_end - y_start) < patch_size or (x_end - x_start) < patch_size:
-                continue
-            
-            # Crop to exact patch size if needed
-            y_end = y_start + patch_size
-            x_end = x_start + patch_size
-            
-            if y_end > masked_vv.shape[0] or x_end > masked_vv.shape[1]:
-                continue
-            
-            patch_vv = masked_vv[y_start:y_end, x_start:x_end]
-            patch_vh = masked_vh[y_start:y_end, x_start:x_end]
-            
-            # Check if patch has valid data
-            patch_valid = ~patch_vv.mask & ~patch_vh.mask
-            if np.sum(patch_valid) < (patch_size * patch_size * 0.8):  # At least 80% valid
-                continue
-            
-            # Convert to regular arrays and fill masked values with 0
-            patch_vv_filled = np.where(patch_vv.mask, 0, patch_vv.data)
-            patch_vh_filled = np.where(patch_vh.mask, 0, patch_vh.data)
-            
-            # Ensure patch is exactly the right size
-            if patch_vv_filled.shape == (patch_size, patch_size) and patch_vh_filled.shape == (patch_size, patch_size):
-                # Stack VV and VH as channels
-                patch_data = np.stack([patch_vv_filled, patch_vh_filled], axis=-1)
-                
-                # Calculate patch transform and bounds
-                patch_transform = mask_transform * rasterio.Affine.translation(x_start, y_start)
-                
-                # Calculate bounds in geographic coordinates
-                patch_bounds = rasterio.transform.array_bounds(
-                    patch_size, patch_size, patch_transform
-                )
-                
-                # Create Patch object
-                patch = Patch(
-                    data=patch_data,
-                    transform=patch_transform,
-                    bounds=patch_bounds,
-                    crs=str(vv_src.crs),
-                    orbit=orbit,
-                    src_files=(image_tuple.vv_path, image_tuple.vh_path),
-                    date=image_tuple.date,
-                    class_id=class_id,
-                    data_mode=mode
-                )
-                
-                patches.append(patch)
-        
-        return patches
-    
-    def cache_patches_for_file(self, mode: DataMode, image_tuple: ImageTuple, n_samples_per_polygon: int = 1) -> None:
+    def cache_patches_for_file(self, mode: DataMode, image_tuple: ImageTuple) -> None:
         """
         Generate and cache patches for a specific image file. This is the heavy computation.
         
         Args:
             mode: Data mode (train/validation/test)
             image_tuple: ImageTuple containing the source files
-            n_samples_per_polygon: Number of samples to extract per polygon
         """
         logger.info(f"Generating patches for {image_tuple.date} (this may take a while)")
         
@@ -1419,7 +1201,7 @@ class PatchYielder:
                     
                     try:
                         patch_objects = self._extract_patches_following_workflow(
-                            polygon_row, vv_src, vh_src, image_tuple, mode, n_samples_per_polygon
+                            polygon_row, vv_src, vh_src, image_tuple, mode
                         )
                         
                         if patch_objects:
@@ -1439,13 +1221,12 @@ class PatchYielder:
         except Exception as e:
             logger.error(f"Error opening raster files for {unique_key}: {e}")
 
-    def yield_patch(self, mode: DataMode, n_samples_per_polygon: int = 1) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
+    def yield_patch(self, mode: DataMode) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
         """
         Yield individual patches from cache. Only loads cached patches and shuffles them.
         
         Args:
             mode: Data mode (train/validation/test)
-            n_samples_per_polygon: Number of samples to extract per polygon
             
         Yields:
             Tuples of (patch_data, class_id) for individual patches
@@ -1457,27 +1238,29 @@ class PatchYielder:
         
         for img_idx, image_tuple in enumerate(self.image_tuples):
             # Check if cache exists
-            cached_patches, cached_labels = self._load_cached_patches(mode, image_tuple)
+            cached_patches = self._load_cached_patches(mode, image_tuple)
             
             if cached_patches is None:
                 # Cache doesn't exist, generate it
                 logger.warning(f"Cache not found for {image_tuple.date}, generating patches...")
-                self.cache_patches_for_file(mode, image_tuple, n_samples_per_polygon)
+                self.cache_patches_for_file(mode, image_tuple)
                 
                 # Try loading again after caching
-                cached_patches, cached_labels = self._load_cached_patches(mode, image_tuple)
+                cached_patches = self._load_cached_patches(mode, image_tuple)
                 if cached_patches is not None:
                     logger.debug(f"Loaded {len(cached_patches)} newly cached patches for {image_tuple.date}")
                 else:
                     logger.error(f"Failed to cache or load patches for {image_tuple.date}")
+                    continue
 
             indices = np.random.permutation(len(cached_patches))
 
             # Yield shuffled patches
             for idx in indices:
-                yield cached_patches[idx], cached_labels[idx]
+                patch = cached_patches[idx]
+                yield patch.data, patch.class_id
 
-    def yield_batch(self, mode: DataMode, n_samples_per_polygon: int = 1) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
+    def yield_batch(self, mode: DataMode) -> Iterator[Tuple[np.ndarray, np.ndarray]]:
         """
         Generate batches of patches using the yield_patch method.
         
@@ -1486,7 +1269,6 @@ class PatchYielder:
         
         Args:
             mode: Data mode (train/validation/test)
-            n_samples_per_polygon: Number of samples to extract per polygon
             
         Yields:
             Tuples of (patches_array, labels_array) for batches
@@ -1498,7 +1280,7 @@ class PatchYielder:
         batch_labels = []
         
         # Use yield_patch to get individual patches with caching
-        patch_generator = self.yield_patch(mode, n_samples_per_polygon)
+        patch_generator = self.yield_patch(mode)
         
         for patch_data, class_id in patch_generator:
             batch_patches.append(patch_data)
@@ -1537,7 +1319,7 @@ class PatchYielder:
         
     def _extract_patches_following_workflow(self, polygon_row: pd.Series, vv_src: rasterio.DatasetReader,
                                           vh_src: rasterio.DatasetReader, image_tuple: ImageTuple, 
-                                          mode: DataMode, n_samples: int) -> List[Patch]:
+                                          mode: DataMode) -> List[Patch]:
         """
         Extract patches following your specified workflow:
         1. Load masked array on UNBUFFERED polygon
@@ -1551,9 +1333,13 @@ class PatchYielder:
         class_id = polygon_row[self.config.column_id]
         patch_size = self.config.neural_network.patch_size
         
+        # Calculate number of patches to extract using the config parameters
+        n_samples = self._calculate_max_patches_for_polygon(geometry, patch_size)
+        
         logger.debug(f"Extracting patches following workflow for class {class_id}")
         logger.debug(f"Polygon bounds: {geometry.bounds}")
         logger.debug(f"Raster bounds: {vv_src.bounds}")
+        logger.debug(f"Max patches for this polygon: {n_samples}")
         
         try:
             # Step 1: Load masked array on UNBUFFERED polygon

@@ -1,29 +1,690 @@
-2025-11-27 22:54:30,834 - lc_speckle_analysis.data_config - INFO - Reading configuration from /mnt/ssddata/users/david/code/lc_specific_speckle_analysis/data/config.conf
-2025-11-27 22:54:30,836 - lc_speckle_analysis.data_config - INFO - Training data paths: ['/mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/Niedersachsen_2022/Niedersachsen_2022_InvekosDataset_c823cf0c.gpkg', '/mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/NRW_2022/NRW_2022_InvekosDataset_0fba3793.gpkg']
-2025-11-27 22:54:30,837 - lc_speckle_analysis.data_config - INFO - Column ID: cora_id
-2025-11-27 22:54:30,837 - lc_speckle_analysis.data_config - INFO - Classes: [1, 4, 6, 12]
-2025-11-27 22:54:30,837 - lc_speckle_analysis.data_config - INFO - Orbits: ['D139']
-2025-11-27 22:54:30,838 - lc_speckle_analysis.data_config - INFO - Dates: ['20220611']
-2025-11-27 22:54:30,838 - lc_speckle_analysis.data_config - INFO - File pattern: /mnt/cephfs/data/CorDAu/S1/download/preproc_1/data/UTMZ_32N/2022/{orbit}/*.tif
-2025-11-27 22:54:30,838 - lc_speckle_analysis.data_config - INFO - Processing config - Workers: 4, Memory: 2048MB, Format: npz
-2025-11-27 22:54:30,839 - lc_speckle_analysis.data_config - INFO - Patch extraction - Per feature: 50, Per area ratio: 1.0
-2025-11-27 22:54:30,839 - lc_speckle_analysis.data_config - INFO - Neural network config - Patch size: 10, Batch size: 32, Architecture: test_flat_2_layers
-2025-11-27 22:54:30,840 - lc_speckle_analysis - INFO - Training configuration loaded successfully
-2025-11-27 22:54:30,840 - lc_speckle_analysis - INFO - Auto-loaded training configuration on import
-2025-11-27 22:54:31,541 - __main__ - INFO - ================================================================================
-2025-11-27 22:54:31,541 - __main__ - INFO - 🎯 COMPREHENSIVE PATCH GENERATION STARTED
-2025-11-27 22:54:31,541 - __main__ - INFO - ================================================================================
-2025-11-27 22:54:31,541 - __main__ - INFO - Timestamp: 2025-11-27 22:54:31.541374
-2025-11-27 22:54:31,541 - __main__ - INFO - Samples per polygon: 50
-2025-11-27 22:54:31,541 - __main__ - INFO - Log file: /mnt/ssddata/users/david/code/lc_specific_speckle_analysis/patch_generation.log
-2025-11-27 22:54:31,541 - __main__ - INFO - Initializing PatchYielder...
-2025-11-27 22:54:31,541 - lc_speckle_analysis.config - INFO - PatchYielder initialized with patch size: 10
-2025-11-27 22:54:31,543 - lc_speckle_analysis.config - INFO - Target EPSG: EPSG:32632
-2025-11-27 22:54:31,545 - lc_speckle_analysis.config - INFO - Loading training data from 2 sources
-2025-11-27 22:54:31,545 - lc_speckle_analysis.config - INFO - Loading dataset 1/2: /mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/Niedersachsen_2022/Niedersachsen_2022_InvekosDataset_c823cf0c.gpkg
-2025-11-27 22:54:36,686 - lc_speckle_analysis.config - INFO -   Loaded 825500 polygons from Niedersachsen_2022_InvekosDataset_c823cf0c.gpkg
-2025-11-27 22:54:36,686 - lc_speckle_analysis.config - INFO - Loading dataset 2/2: /mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/NRW_2022/NRW_2022_InvekosDataset_0fba3793.gpkg
-2025-11-27 22:54:41,575 - lc_speckle_analysis.config - INFO -   Loaded 501548 polygons from NRW_2022_InvekosDataset_0fba3793.gpkg
-2025-11-27 22:54:41,760 - lc_speckle_analysis.config - INFO - Combined datasets: 1327048 total polygons
-2025-11-27 22:54:41,760 - lc_speckle_analysis.config - INFO - Original CRS: EPSG:25832, Final combined polygons: 1327048
-2025-11-27 22:54:41,761 - lc_speckle_analysis.config - INFO - Reprojecting from EPSG:25832 to EPSG:32632
+2025-11-27 23:09:49,671 - lc_speckle_analysis.data_config - INFO - Reading configuration from /mnt/ssddata/users/david/code/lc_specific_speckle_analysis/data/config.conf
+2025-11-27 23:09:49,673 - lc_speckle_analysis.data_config - INFO - Training data paths: ['/mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/Niedersachsen_2022/Niedersachsen_2022_InvekosDataset_c823cf0c.gpkg', '/mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/NRW_2022/NRW_2022_InvekosDataset_0fba3793.gpkg']
+2025-11-27 23:09:49,674 - lc_speckle_analysis.data_config - INFO - Column ID: cora_id
+2025-11-27 23:09:49,674 - lc_speckle_analysis.data_config - INFO - Classes: [1, 4, 6, 12]
+2025-11-27 23:09:49,676 - lc_speckle_analysis.data_config - INFO - Orbits: ['D139']
+2025-11-27 23:09:49,677 - lc_speckle_analysis.data_config - INFO - Dates: ['20220611']
+2025-11-27 23:09:49,677 - lc_speckle_analysis.data_config - INFO - File pattern: /mnt/cephfs/data/CorDAu/S1/download/preproc_1/data/UTMZ_32N/2022/{orbit}/*.tif
+2025-11-27 23:09:49,678 - lc_speckle_analysis.data_config - INFO - Processing config - Workers: 4, Memory: 2048MB, Format: npz
+2025-11-27 23:09:49,679 - lc_speckle_analysis.data_config - INFO - Patch extraction - Per feature: 50, Per area ratio: 1.0
+2025-11-27 23:09:49,680 - lc_speckle_analysis.data_config - INFO - Neural network config - Patch size: 10, Batch size: 32, Architecture: test_flat_2_layers
+2025-11-27 23:09:49,681 - lc_speckle_analysis - INFO - Training configuration loaded successfully
+2025-11-27 23:09:49,681 - lc_speckle_analysis - INFO - Auto-loaded training configuration on import
+2025-11-27 23:09:50,435 - __main__ - INFO - ================================================================================
+2025-11-27 23:09:50,435 - __main__ - INFO - 🎯 COMPREHENSIVE PATCH GENERATION STARTED
+2025-11-27 23:09:50,435 - __main__ - INFO - ================================================================================
+2025-11-27 23:09:50,435 - __main__ - INFO - Timestamp: 2025-11-27 23:09:50.435334
+2025-11-27 23:09:50,435 - __main__ - INFO - Samples per polygon: 50
+2025-11-27 23:09:50,435 - __main__ - INFO - Log file: /mnt/ssddata/users/david/code/lc_specific_speckle_analysis/patch_generation.log
+2025-11-27 23:09:50,437 - __main__ - INFO - Initializing PatchYielder...
+2025-11-27 23:09:50,439 - lc_speckle_analysis.config - INFO - PatchYielder initialized with patch size: 10
+2025-11-27 23:09:50,440 - lc_speckle_analysis.config - INFO - Target EPSG: EPSG:32632
+2025-11-27 23:09:50,442 - lc_speckle_analysis.config - INFO - Loading training data from 2 sources
+2025-11-27 23:09:50,442 - lc_speckle_analysis.config - INFO - Loading dataset 1/2: /mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/Niedersachsen_2022/Niedersachsen_2022_InvekosDataset_c823cf0c.gpkg
+2025-11-27 23:09:55,814 - lc_speckle_analysis.config - INFO -   Loaded 825500 polygons from Niedersachsen_2022_InvekosDataset_c823cf0c.gpkg
+2025-11-27 23:09:55,815 - lc_speckle_analysis.config - INFO - Loading dataset 2/2: /mnt/ssddata/PbNNMod/label_preparation/classification/crop_classification/cldef_5/NRW_2022/NRW_2022_InvekosDataset_0fba3793.gpkg
+2025-11-27 23:10:01,024 - lc_speckle_analysis.config - INFO -   Loaded 501548 polygons from NRW_2022_InvekosDataset_0fba3793.gpkg
+2025-11-27 23:10:01,252 - lc_speckle_analysis.config - INFO - Combined datasets: 1327048 total polygons
+2025-11-27 23:10:01,252 - lc_speckle_analysis.config - INFO - Original CRS: EPSG:25832, Final combined polygons: 1327048
+2025-11-27 23:10:01,253 - lc_speckle_analysis.config - INFO - Reprojecting from EPSG:25832 to EPSG:32632
+2025-11-27 23:10:13,376 - lc_speckle_analysis.config - INFO - Filtered to 962908 polygons from 1327048 (classes: [1, 4, 6, 12])
+2025-11-27 23:10:13,389 - lc_speckle_analysis.config - INFO - Class distribution: {1: 576511, 4: 234068, 6: 26093, 12: 126236}
+2025-11-27 23:10:13,389 - lc_speckle_analysis.config - INFO - Caching processed training data to processed_training_data_bb54014e_c02a_epsg32632.gpkg
+2025-11-27 23:10:25,046 - pyogrio._io - INFO - Created 962,908 records
+2025-11-27 23:10:36,103 - lc_speckle_analysis.config - INFO - Buffering all polygons globally for minimum patch size requirements
+2025-11-27 23:10:36,104 - lc_speckle_analysis.config - INFO - Global buffer: inward 141.4m for minimum viable polygon size (patch size 10)
+2025-11-27 23:10:36,668 - lc_speckle_analysis.config - INFO - Computing globally filtered polygons (buffering for size check only)
+2025-11-27 23:11:10,544 - lc_speckle_analysis.config - INFO - After global buffering filter: 11769 polygons from 962908 (1.2% remaining)
+2025-11-27 23:11:10,545 - lc_speckle_analysis.config - INFO - Global class distribution after buffering: {1: 1143, 4: 4161, 6: 1793, 12: 4672}
+2025-11-27 23:11:10,745 - pyogrio._io - INFO - Created 11,769 records
+2025-11-27 23:11:10,813 - lc_speckle_analysis.config - INFO - Cached globally filtered polygons: global_filtered_polygons_NRW_2022_Niedersachsen_2022_patch10_epsg32632_1da55510.gpkg
+2025-11-27 23:11:10,813 - lc_speckle_analysis.config - INFO - Final polygon count for global processing: 11769
+2025-11-27 23:11:12,093 - lc_speckle_analysis.config - INFO - Finding VV/VH image pairs
+2025-11-27 23:11:12,100 - lc_speckle_analysis.data_config - INFO - Found 396 files for orbit D139
+2025-11-27 23:11:12,100 - lc_speckle_analysis.config - INFO - Found 396 satellite files
+2025-11-27 23:11:12,104 - lc_speckle_analysis.config - INFO - Created 198 VV/VH image pairs
+2025-11-27 23:11:12,105 - lc_speckle_analysis.config - INFO - Filtered to 7 image tuples for specified dates
+2025-11-27 23:11:12,106 - lc_speckle_analysis.config - INFO - Using 7 image tuples for processing
+2025-11-27 23:11:12,106 - lc_speckle_analysis.config - INFO - Filtering image tuples by bounds intersection and class availability
+2025-11-27 23:11:12,109 - lc_speckle_analysis.config - INFO - Training data bounds: [ 282269.80607631 5580412.27482326  671183.6318982  5968613.04092416]
+2025-11-27 23:11:12,123 - lc_speckle_analysis.config - INFO - Discarding 20220611: no bounds intersection
+2025-11-27 23:11:12,124 - lc_speckle_analysis.config - INFO - Discarding 20220611: no bounds intersection
+2025-11-27 23:11:12,126 - lc_speckle_analysis.config - INFO - Discarding 20220611: no bounds intersection
+2025-11-27 23:11:12,133 - lc_speckle_analysis.config - INFO - Cached 3 newly discarded images: discarded_images_eee178ee.json
+2025-11-27 23:11:12,133 - lc_speckle_analysis.config - INFO - Filtered image tuples: 7 → 4 (discarded 3)
+2025-11-27 23:11:12,135 - lc_speckle_analysis.config - INFO - Computing valid AOIs for 4 image tuples
+2025-11-27 23:11:12,136 - lc_speckle_analysis.config - INFO - Processing tuple 1/4: 20220611
+2025-11-27 23:11:12,136 - lc_speckle_analysis.config - INFO - Computing AOI for 20220611 (this may take a moment)
+2025-11-27 23:11:12,138 - lc_speckle_analysis.config - INFO - Extracting raw polygon for 20220611
+2025-11-27 23:11:17,473 - lc_speckle_analysis.config - INFO - Valid data coverage for 20220611: 65.8%
+2025-11-27 23:11:17,473 - lc_speckle_analysis.config - INFO - Extracting polygons from valid pixels for 20220611
+2025-11-27 23:11:17,547 - lc_speckle_analysis.config - INFO - Extracted 1 polygon fragments
+2025-11-27 23:11:17,583 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:17,628 - lc_speckle_analysis.config - INFO - Cached raw polygon: valid_aoi_D139_S1A_IW_GRDH_30c805_raw_polygon.gpkg
+2025-11-27 23:11:17,628 - lc_speckle_analysis.config - INFO - Reprojecting to EPSG:32632
+2025-11-27 23:11:17,665 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:17,711 - lc_speckle_analysis.config - INFO - Cached reprojected polygon: valid_aoi_D139_S1A_IW_GRDH_30c805_reprojected.gpkg
+2025-11-27 23:11:17,711 - lc_speckle_analysis.config - INFO - Applying buffering and simplification for 20220611
+2025-11-27 23:11:17,712 - lc_speckle_analysis.config - INFO - Applying initial buffer to reprojected polygon
+2025-11-27 23:11:17,717 - lc_speckle_analysis.config - INFO - Buffering polygon outwards by 2000m to fill holes
+2025-11-27 23:11:18,008 - lc_speckle_analysis.config - INFO - Buffering polygon inwards by 5000m for safety margin
+2025-11-27 23:11:18,089 - lc_speckle_analysis.config - INFO - Intersecting AOI with actual raster bounds
+2025-11-27 23:11:18,160 - lc_speckle_analysis.config - INFO - AOI for 20220611 contains 2072 polygons (meets minimum requirement)
+2025-11-27 23:11:18,160 - lc_speckle_analysis.config - INFO - Simplifying polygon with 100m tolerance
+2025-11-27 23:11:18,164 - lc_speckle_analysis.config - INFO - Final AOI for 20220611: area=39991.6 km²
+2025-11-27 23:11:18,199 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:18,243 - lc_speckle_analysis.config - INFO - Cached final AOI: valid_aoi_D139_S1A_IW_GRDH_30c805.gpkg
+2025-11-27 23:11:18,244 - lc_speckle_analysis.config - INFO - AOI for 20220611_054221_30c805: area=39991.6 km²
+2025-11-27 23:11:18,245 - lc_speckle_analysis.config - INFO - Processing tuple 2/4: 20220611
+2025-11-27 23:11:18,246 - lc_speckle_analysis.config - INFO - Computing AOI for 20220611 (this may take a moment)
+2025-11-27 23:11:18,247 - lc_speckle_analysis.config - INFO - Extracting raw polygon for 20220611
+2025-11-27 23:11:23,535 - lc_speckle_analysis.config - INFO - Valid data coverage for 20220611: 65.8%
+2025-11-27 23:11:23,536 - lc_speckle_analysis.config - INFO - Extracting polygons from valid pixels for 20220611
+2025-11-27 23:11:23,607 - lc_speckle_analysis.config - INFO - Extracted 1 polygon fragments
+2025-11-27 23:11:23,646 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:23,690 - lc_speckle_analysis.config - INFO - Cached raw polygon: valid_aoi_D139_S1A_IW_GRDH_3a45d5_raw_polygon.gpkg
+2025-11-27 23:11:23,691 - lc_speckle_analysis.config - INFO - Reprojecting to EPSG:32632
+2025-11-27 23:11:23,726 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:23,772 - lc_speckle_analysis.config - INFO - Cached reprojected polygon: valid_aoi_D139_S1A_IW_GRDH_3a45d5_reprojected.gpkg
+2025-11-27 23:11:23,772 - lc_speckle_analysis.config - INFO - Applying buffering and simplification for 20220611
+2025-11-27 23:11:23,773 - lc_speckle_analysis.config - INFO - Applying initial buffer to reprojected polygon
+2025-11-27 23:11:23,778 - lc_speckle_analysis.config - INFO - Buffering polygon outwards by 2000m to fill holes
+2025-11-27 23:11:24,070 - lc_speckle_analysis.config - INFO - Buffering polygon inwards by 5000m for safety margin
+2025-11-27 23:11:24,150 - lc_speckle_analysis.config - INFO - Intersecting AOI with actual raster bounds
+2025-11-27 23:11:24,170 - lc_speckle_analysis.config - INFO - AOI for 20220611 contains 226 polygons (meets minimum requirement)
+2025-11-27 23:11:24,170 - lc_speckle_analysis.config - INFO - Simplifying polygon with 100m tolerance
+2025-11-27 23:11:24,175 - lc_speckle_analysis.config - INFO - Final AOI for 20220611: area=40079.7 km²
+2025-11-27 23:11:24,212 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:24,257 - lc_speckle_analysis.config - INFO - Cached final AOI: valid_aoi_D139_S1A_IW_GRDH_3a45d5.gpkg
+2025-11-27 23:11:24,258 - lc_speckle_analysis.config - INFO - AOI for 20220611_054246_3a45d5: area=40079.7 km²
+2025-11-27 23:11:24,258 - lc_speckle_analysis.config - INFO - Processing tuple 3/4: 20220611
+2025-11-27 23:11:24,259 - lc_speckle_analysis.config - INFO - Computing AOI for 20220611 (this may take a moment)
+2025-11-27 23:11:24,260 - lc_speckle_analysis.config - INFO - Extracting raw polygon for 20220611
+2025-11-27 23:11:29,704 - lc_speckle_analysis.config - INFO - Valid data coverage for 20220611: 66.0%
+2025-11-27 23:11:29,704 - lc_speckle_analysis.config - INFO - Extracting polygons from valid pixels for 20220611
+2025-11-27 23:11:29,776 - lc_speckle_analysis.config - INFO - Extracted 1 polygon fragments
+2025-11-27 23:11:29,816 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:29,861 - lc_speckle_analysis.config - INFO - Cached raw polygon: valid_aoi_D139_S1A_IW_GRDH_82bc33_raw_polygon.gpkg
+2025-11-27 23:11:29,862 - lc_speckle_analysis.config - INFO - Reprojecting to EPSG:32632
+2025-11-27 23:11:29,901 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:29,947 - lc_speckle_analysis.config - INFO - Cached reprojected polygon: valid_aoi_D139_S1A_IW_GRDH_82bc33_reprojected.gpkg
+2025-11-27 23:11:29,947 - lc_speckle_analysis.config - INFO - Applying buffering and simplification for 20220611
+2025-11-27 23:11:29,949 - lc_speckle_analysis.config - INFO - Applying initial buffer to reprojected polygon
+2025-11-27 23:11:29,953 - lc_speckle_analysis.config - INFO - Buffering polygon outwards by 2000m to fill holes
+2025-11-27 23:11:30,000 - lc_speckle_analysis.config - INFO - Buffering polygon inwards by 5000m for safety margin
+2025-11-27 23:11:30,084 - lc_speckle_analysis.config - INFO - Intersecting AOI with actual raster bounds
+2025-11-27 23:11:30,185 - lc_speckle_analysis.config - INFO - AOI for 20220611 contains 5015 polygons (meets minimum requirement)
+2025-11-27 23:11:30,185 - lc_speckle_analysis.config - INFO - Simplifying polygon with 100m tolerance
+2025-11-27 23:11:30,191 - lc_speckle_analysis.config - INFO - Final AOI for 20220611: area=40050.2 km²
+2025-11-27 23:11:30,229 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:30,276 - lc_speckle_analysis.config - INFO - Cached final AOI: valid_aoi_D139_S1A_IW_GRDH_82bc33.gpkg
+2025-11-27 23:11:30,277 - lc_speckle_analysis.config - INFO - AOI for 20220611_054156_82bc33: area=40050.2 km²
+2025-11-27 23:11:30,278 - lc_speckle_analysis.config - INFO - Processing tuple 4/4: 20220611
+2025-11-27 23:11:30,278 - lc_speckle_analysis.config - INFO - Computing AOI for 20220611 (this may take a moment)
+2025-11-27 23:11:30,279 - lc_speckle_analysis.config - INFO - Extracting raw polygon for 20220611
+2025-11-27 23:11:35,682 - lc_speckle_analysis.config - INFO - Valid data coverage for 20220611: 66.1%
+2025-11-27 23:11:35,682 - lc_speckle_analysis.config - INFO - Extracting polygons from valid pixels for 20220611
+2025-11-27 23:11:35,752 - lc_speckle_analysis.config - INFO - Extracted 1 polygon fragments
+2025-11-27 23:11:35,791 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:35,838 - lc_speckle_analysis.config - INFO - Cached raw polygon: valid_aoi_D139_S1A_IW_GRDH_20c64d_raw_polygon.gpkg
+2025-11-27 23:11:35,838 - lc_speckle_analysis.config - INFO - Reprojecting to EPSG:32632
+2025-11-27 23:11:35,877 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:35,924 - lc_speckle_analysis.config - INFO - Cached reprojected polygon: valid_aoi_D139_S1A_IW_GRDH_20c64d_reprojected.gpkg
+2025-11-27 23:11:35,924 - lc_speckle_analysis.config - INFO - Applying buffering and simplification for 20220611
+2025-11-27 23:11:35,926 - lc_speckle_analysis.config - INFO - Applying initial buffer to reprojected polygon
+2025-11-27 23:11:35,930 - lc_speckle_analysis.config - INFO - Buffering polygon outwards by 2000m to fill holes
+2025-11-27 23:11:35,974 - lc_speckle_analysis.config - INFO - Buffering polygon inwards by 5000m for safety margin
+2025-11-27 23:11:36,061 - lc_speckle_analysis.config - INFO - Intersecting AOI with actual raster bounds
+2025-11-27 23:11:36,085 - lc_speckle_analysis.config - INFO - AOI for 20220611 contains 171 polygons (meets minimum requirement)
+2025-11-27 23:11:36,085 - lc_speckle_analysis.config - INFO - Simplifying polygon with 100m tolerance
+2025-11-27 23:11:36,088 - lc_speckle_analysis.config - INFO - Final AOI for 20220611: area=40036.3 km²
+2025-11-27 23:11:36,126 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:36,173 - lc_speckle_analysis.config - INFO - Cached final AOI: valid_aoi_D139_S1A_IW_GRDH_20c64d.gpkg
+2025-11-27 23:11:36,174 - lc_speckle_analysis.config - INFO - AOI for 20220611_054131_20c64d: area=40036.3 km²
+2025-11-27 23:11:36,174 - lc_speckle_analysis.config - INFO - Filtering AOIs by class availability
+2025-11-27 23:11:36,186 - lc_speckle_analysis.config - INFO - AOI 20220611_054221_30c805 has all required classes: {1, 12, 4, 6}
+2025-11-27 23:11:36,188 - lc_speckle_analysis.config - INFO - AOI 20220611_054246_3a45d5 has all required classes: {1, 12, 4, 6}
+2025-11-27 23:11:36,199 - lc_speckle_analysis.config - INFO - AOI 20220611_054156_82bc33 has all required classes: {1, 4, 12, 6}
+2025-11-27 23:11:36,203 - lc_speckle_analysis.config - INFO - AOI 20220611_054131_20c64d accepted with 3/4 classes (missing: {6})
+2025-11-27 23:11:36,203 - lc_speckle_analysis.config - INFO - Filtered AOIs by class availability: 4 → 4 (discarded 0)
+2025-11-27 23:11:36,205 - lc_speckle_analysis.config - INFO - Combined AOI area: 160157.8 km²
+2025-11-27 23:11:36,243 - pyogrio._io - INFO - Created 1 records
+2025-11-27 23:11:36,295 - lc_speckle_analysis.config - INFO - Cached combined AOI: combined_aoi_e8a7d070_80a06b7d.gpkg
+2025-11-27 23:11:36,295 - lc_speckle_analysis.config - INFO - Filtering polygons by individual valid AOIs
+2025-11-27 23:11:36,307 - lc_speckle_analysis.config - INFO - AOI 20220611_054221_30c805: 2072 intersecting polygons
+2025-11-27 23:11:36,310 - lc_speckle_analysis.config - INFO - AOI 20220611_054246_3a45d5: 226 intersecting polygons
+2025-11-27 23:11:36,321 - lc_speckle_analysis.config - INFO - AOI 20220611_054156_82bc33: 5016 intersecting polygons
+2025-11-27 23:11:36,325 - lc_speckle_analysis.config - INFO - AOI 20220611_054131_20c64d: 171 intersecting polygons
+2025-11-27 23:11:36,338 - lc_speckle_analysis.config - INFO - Filtered from 11769 to 7485 polygons (63.6% remaining)
+2025-11-27 23:11:36,338 - lc_speckle_analysis.config - INFO - Class distribution after AOI filtering: {1: 917, 4: 3290, 6: 740, 12: 2538}
+2025-11-27 23:11:36,339 - lc_speckle_analysis.config - INFO - Per-image intersection statistics:
+2025-11-27 23:11:36,339 - lc_speckle_analysis.config - INFO -   20220611_054221_30c805: 2072 polygons
+2025-11-27 23:11:36,339 - lc_speckle_analysis.config - INFO -   20220611_054246_3a45d5: 226 polygons
+2025-11-27 23:11:36,339 - lc_speckle_analysis.config - INFO -   20220611_054156_82bc33: 5016 polygons
+2025-11-27 23:11:36,339 - lc_speckle_analysis.config - INFO -   20220611_054131_20c64d: 171 polygons
+2025-11-27 23:11:36,340 - lc_speckle_analysis.config - INFO - Splitting data into train/validation/test sets
+2025-11-27 23:11:36,348 - lc_speckle_analysis.config - INFO - train: 4491 polygons
+2025-11-27 23:11:36,349 - lc_speckle_analysis.config - INFO -   Class distribution: {1: 550, 4: 1974, 6: 444, 12: 1523}
+2025-11-27 23:11:36,350 - lc_speckle_analysis.config - INFO - validation: 1497 polygons
+2025-11-27 23:11:36,350 - lc_speckle_analysis.config - INFO -   Class distribution: {1: 184, 4: 658, 6: 148, 12: 507}
+2025-11-27 23:11:36,352 - lc_speckle_analysis.config - INFO - test: 1497 polygons
+2025-11-27 23:11:36,352 - lc_speckle_analysis.config - INFO -   Class distribution: {1: 183, 4: 658, 6: 148, 12: 508}
+2025-11-27 23:11:36,353 - lc_speckle_analysis.config - INFO - Active classes for training: [1, 4, 6, 12]
+2025-11-27 23:11:36,353 - __main__ - INFO - Configuration loaded:
+2025-11-27 23:11:36,354 - __main__ - INFO -   Image tuples: 4
+2025-11-27 23:11:36,354 - __main__ - INFO -   Train polygons: 4491
+2025-11-27 23:11:36,354 - __main__ - INFO -   Validation polygons: 1497
+2025-11-27 23:11:36,354 - __main__ - INFO -   Test polygons: 1497
+2025-11-27 23:11:36,356 - __main__ - INFO -   Patch size: 10x10
+2025-11-27 23:11:36,356 - __main__ - INFO -   Batch size: 32
+2025-11-27 23:11:36,356 - __main__ - INFO - 
+📦 Processing mode 1/3: TRAIN
+2025-11-27 23:11:36,356 - __main__ - INFO - ------------------------------------------------------------
+2025-11-27 23:11:36,356 - __main__ - INFO - 🚀 Starting patch generation for TRAIN mode
+2025-11-27 23:11:36,356 - __main__ - INFO - Target: 50 samples per polygon
+2025-11-27 23:11:36,356 - __main__ - INFO - Available polygons: 4491
+2025-11-27 23:11:36,356 - __main__ - INFO - Expected batches: ~7017
+2025-11-27 23:11:36,356 - lc_speckle_analysis.config - INFO - Starting batch generation for train mode
+2025-11-27 23:11:36,356 - lc_speckle_analysis.config - INFO - Loading cached patches for train mode
+2025-11-27 23:11:36,357 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:11:36,359 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:11:36,359 - lc_speckle_analysis.config - INFO - Processing 104 polygons for image 20220611_054131_20c64d
+2025-11-27 23:11:37,360 - lc_speckle_analysis.config - INFO -   Processing polygon 50/104
+2025-11-27 23:11:38,001 - lc_speckle_analysis.config - INFO -   Processing polygon 100/104
+2025-11-27 23:11:38,139 - lc_speckle_analysis.config - INFO - Cached 5200 patches for 20220611 in train_bf7883bcc52e.pkl
+2025-11-27 23:11:38,139 - lc_speckle_analysis.config - INFO - Cached 5200 patches for 20220611_054131_20c64d
+2025-11-27 23:11:38,242 - lc_speckle_analysis.config - INFO - Loaded 5200 cached patches for 20220611 from train_bf7883bcc52e.pkl
+2025-11-27 23:11:38,244 - __main__ - INFO -   Batch 50: 1600 patches generated (1.9s elapsed)
+2025-11-27 23:11:38,247 - __main__ - INFO -   Batch 100: 3200 patches generated (1.9s elapsed)
+2025-11-27 23:11:38,249 - __main__ - INFO -   Batch 150: 4800 patches generated (1.9s elapsed)
+2025-11-27 23:11:38,254 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:11:38,254 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:11:38,256 - lc_speckle_analysis.config - INFO - Processing 3002 polygons for image 20220611_054156_82bc33
+2025-11-27 23:11:40,141 - lc_speckle_analysis.config - INFO -   Processing polygon 50/3002
+2025-11-27 23:11:41,785 - lc_speckle_analysis.config - INFO -   Processing polygon 100/3002
+2025-11-27 23:11:43,208 - lc_speckle_analysis.config - INFO -   Processing polygon 150/3002
+2025-11-27 23:11:44,415 - lc_speckle_analysis.config - INFO -   Processing polygon 200/3002
+2025-11-27 23:11:45,590 - lc_speckle_analysis.config - INFO -   Processing polygon 250/3002
+2025-11-27 23:11:46,676 - lc_speckle_analysis.config - INFO -   Processing polygon 300/3002
+2025-11-27 23:11:47,628 - lc_speckle_analysis.config - INFO -   Processing polygon 350/3002
+2025-11-27 23:11:48,605 - lc_speckle_analysis.config - INFO -   Processing polygon 400/3002
+2025-11-27 23:11:49,473 - lc_speckle_analysis.config - INFO -   Processing polygon 450/3002
+2025-11-27 23:11:50,362 - lc_speckle_analysis.config - INFO -   Processing polygon 500/3002
+2025-11-27 23:11:51,226 - lc_speckle_analysis.config - INFO -   Processing polygon 550/3002
+2025-11-27 23:11:52,155 - lc_speckle_analysis.config - INFO -   Processing polygon 600/3002
+2025-11-27 23:11:52,883 - lc_speckle_analysis.config - INFO -   Processing polygon 650/3002
+2025-11-27 23:11:53,652 - lc_speckle_analysis.config - INFO -   Processing polygon 700/3002
+2025-11-27 23:11:54,483 - lc_speckle_analysis.config - INFO -   Processing polygon 750/3002
+2025-11-27 23:11:55,269 - lc_speckle_analysis.config - INFO -   Processing polygon 800/3002
+2025-11-27 23:11:55,981 - lc_speckle_analysis.config - INFO -   Processing polygon 850/3002
+2025-11-27 23:11:56,832 - lc_speckle_analysis.config - INFO -   Processing polygon 900/3002
+2025-11-27 23:11:57,526 - lc_speckle_analysis.config - INFO -   Processing polygon 950/3002
+2025-11-27 23:11:58,215 - lc_speckle_analysis.config - INFO -   Processing polygon 1000/3002
+2025-11-27 23:11:58,859 - lc_speckle_analysis.config - INFO -   Processing polygon 1050/3002
+2025-11-27 23:11:59,511 - lc_speckle_analysis.config - INFO -   Processing polygon 1100/3002
+2025-11-27 23:12:00,105 - lc_speckle_analysis.config - INFO -   Processing polygon 1150/3002
+2025-11-27 23:12:00,690 - lc_speckle_analysis.config - INFO -   Processing polygon 1200/3002
+2025-11-27 23:12:01,268 - lc_speckle_analysis.config - INFO -   Processing polygon 1250/3002
+2025-11-27 23:12:01,975 - lc_speckle_analysis.config - INFO -   Processing polygon 1300/3002
+2025-11-27 23:12:02,553 - lc_speckle_analysis.config - INFO -   Processing polygon 1350/3002
+2025-11-27 23:12:03,089 - lc_speckle_analysis.config - INFO -   Processing polygon 1400/3002
+2025-11-27 23:12:03,728 - lc_speckle_analysis.config - INFO -   Processing polygon 1450/3002
+2025-11-27 23:12:04,271 - lc_speckle_analysis.config - INFO -   Processing polygon 1500/3002
+2025-11-27 23:12:04,854 - lc_speckle_analysis.config - INFO -   Processing polygon 1550/3002
+2025-11-27 23:12:05,389 - lc_speckle_analysis.config - INFO -   Processing polygon 1600/3002
+2025-11-27 23:12:05,967 - lc_speckle_analysis.config - INFO -   Processing polygon 1650/3002
+2025-11-27 23:12:06,503 - lc_speckle_analysis.config - INFO -   Processing polygon 1700/3002
+2025-11-27 23:12:07,164 - lc_speckle_analysis.config - INFO -   Processing polygon 1750/3002
+2025-11-27 23:12:07,688 - lc_speckle_analysis.config - INFO -   Processing polygon 1800/3002
+2025-11-27 23:12:08,206 - lc_speckle_analysis.config - INFO -   Processing polygon 1850/3002
+2025-11-27 23:12:08,722 - lc_speckle_analysis.config - INFO -   Processing polygon 1900/3002
+2025-11-27 23:12:09,241 - lc_speckle_analysis.config - INFO -   Processing polygon 1950/3002
+2025-11-27 23:12:09,732 - lc_speckle_analysis.config - INFO -   Processing polygon 2000/3002
+2025-11-27 23:12:10,217 - lc_speckle_analysis.config - INFO -   Processing polygon 2050/3002
+2025-11-27 23:12:10,728 - lc_speckle_analysis.config - INFO -   Processing polygon 2100/3002
+2025-11-27 23:12:11,253 - lc_speckle_analysis.config - INFO -   Processing polygon 2150/3002
+2025-11-27 23:12:11,783 - lc_speckle_analysis.config - INFO -   Processing polygon 2200/3002
+2025-11-27 23:12:12,275 - lc_speckle_analysis.config - INFO -   Processing polygon 2250/3002
+2025-11-27 23:12:12,736 - lc_speckle_analysis.config - INFO -   Processing polygon 2300/3002
+2025-11-27 23:12:13,378 - lc_speckle_analysis.config - INFO -   Processing polygon 2350/3002
+2025-11-27 23:12:13,833 - lc_speckle_analysis.config - INFO -   Processing polygon 2400/3002
+2025-11-27 23:12:14,283 - lc_speckle_analysis.config - INFO -   Processing polygon 2450/3002
+2025-11-27 23:12:14,733 - lc_speckle_analysis.config - INFO -   Processing polygon 2500/3002
+2025-11-27 23:12:15,203 - lc_speckle_analysis.config - INFO -   Processing polygon 2550/3002
+2025-11-27 23:12:15,648 - lc_speckle_analysis.config - INFO -   Processing polygon 2600/3002
+2025-11-27 23:12:16,104 - lc_speckle_analysis.config - INFO -   Processing polygon 2650/3002
+2025-11-27 23:12:16,580 - lc_speckle_analysis.config - INFO -   Processing polygon 2700/3002
+2025-11-27 23:12:17,013 - lc_speckle_analysis.config - INFO -   Processing polygon 2750/3002
+2025-11-27 23:12:17,441 - lc_speckle_analysis.config - INFO -   Processing polygon 2800/3002
+2025-11-27 23:12:17,888 - lc_speckle_analysis.config - INFO -   Processing polygon 2850/3002
+2025-11-27 23:12:18,302 - lc_speckle_analysis.config - INFO -   Processing polygon 2900/3002
+2025-11-27 23:12:18,819 - lc_speckle_analysis.config - INFO -   Processing polygon 2950/3002
+2025-11-27 23:12:19,544 - lc_speckle_analysis.config - INFO -   Processing polygon 3000/3002
+2025-11-27 23:12:23,638 - lc_speckle_analysis.config - INFO - Cached 150085 patches for 20220611 in train_bdddd1ee15bf.pkl
+2025-11-27 23:12:23,639 - lc_speckle_analysis.config - INFO - Cached 150085 patches for 20220611_054156_82bc33
+2025-11-27 23:12:28,166 - lc_speckle_analysis.config - INFO - Loaded 150085 cached patches for 20220611 from train_bdddd1ee15bf.pkl
+2025-11-27 23:12:28,180 - __main__ - INFO -   Batch 200: 6400 patches generated (51.8s elapsed)
+2025-11-27 23:12:28,184 - __main__ - INFO -   Batch 250: 8000 patches generated (51.8s elapsed)
+2025-11-27 23:12:28,188 - __main__ - INFO -   Batch 300: 9600 patches generated (51.8s elapsed)
+2025-11-27 23:12:28,192 - __main__ - INFO -   Batch 350: 11200 patches generated (51.8s elapsed)
+2025-11-27 23:12:28,196 - __main__ - INFO -   Batch 400: 12800 patches generated (51.8s elapsed)
+2025-11-27 23:12:28,199 - __main__ - INFO -   Batch 450: 14400 patches generated (51.8s elapsed)
+2025-11-27 23:12:28,203 - __main__ - INFO -   Batch 500: 16000 patches generated (51.8s elapsed)
+2025-11-27 23:12:28,207 - __main__ - INFO -   Batch 550: 17600 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,210 - __main__ - INFO -   Batch 600: 19200 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,214 - __main__ - INFO -   Batch 650: 20800 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,217 - __main__ - INFO -   Batch 700: 22400 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,221 - __main__ - INFO -   Batch 750: 24000 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,225 - __main__ - INFO -   Batch 800: 25600 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,228 - __main__ - INFO -   Batch 850: 27200 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,232 - __main__ - INFO -   Batch 900: 28800 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,235 - __main__ - INFO -   Batch 950: 30400 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,239 - __main__ - INFO -   Batch 1000: 32000 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,243 - __main__ - INFO -   Batch 1050: 33600 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,246 - __main__ - INFO -   Batch 1100: 35200 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,250 - __main__ - INFO -   Batch 1150: 36800 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,253 - __main__ - INFO -   Batch 1200: 38400 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,257 - __main__ - INFO -   Batch 1250: 40000 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,261 - __main__ - INFO -   Batch 1300: 41600 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,264 - __main__ - INFO -   Batch 1350: 43200 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,268 - __main__ - INFO -   Batch 1400: 44800 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,271 - __main__ - INFO -   Batch 1450: 46400 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,275 - __main__ - INFO -   Batch 1500: 48000 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,279 - __main__ - INFO -   Batch 1550: 49600 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,282 - __main__ - INFO -   Batch 1600: 51200 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,286 - __main__ - INFO -   Batch 1650: 52800 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,289 - __main__ - INFO -   Batch 1700: 54400 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,293 - __main__ - INFO -   Batch 1750: 56000 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,296 - __main__ - INFO -   Batch 1800: 57600 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,300 - __main__ - INFO -   Batch 1850: 59200 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,303 - __main__ - INFO -   Batch 1900: 60800 patches generated (51.9s elapsed)
+2025-11-27 23:12:28,307 - __main__ - INFO -   Batch 1950: 62400 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,310 - __main__ - INFO -   Batch 2000: 64000 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,314 - __main__ - INFO -   Batch 2050: 65600 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,317 - __main__ - INFO -   Batch 2100: 67200 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,321 - __main__ - INFO -   Batch 2150: 68800 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,324 - __main__ - INFO -   Batch 2200: 70400 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,328 - __main__ - INFO -   Batch 2250: 72000 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,331 - __main__ - INFO -   Batch 2300: 73600 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,335 - __main__ - INFO -   Batch 2350: 75200 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,339 - __main__ - INFO -   Batch 2400: 76800 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,342 - __main__ - INFO -   Batch 2450: 78400 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,346 - __main__ - INFO -   Batch 2500: 80000 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,349 - __main__ - INFO -   Batch 2550: 81600 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,353 - __main__ - INFO -   Batch 2600: 83200 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,357 - __main__ - INFO -   Batch 2650: 84800 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,360 - __main__ - INFO -   Batch 2700: 86400 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,364 - __main__ - INFO -   Batch 2750: 88000 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,367 - __main__ - INFO -   Batch 2800: 89600 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,371 - __main__ - INFO -   Batch 2850: 91200 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,374 - __main__ - INFO -   Batch 2900: 92800 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,378 - __main__ - INFO -   Batch 2950: 94400 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,381 - __main__ - INFO -   Batch 3000: 96000 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,385 - __main__ - INFO -   Batch 3050: 97600 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,388 - __main__ - INFO -   Batch 3100: 99200 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,392 - __main__ - INFO -   Batch 3150: 100800 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,395 - __main__ - INFO -   Batch 3200: 102400 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,399 - __main__ - INFO -   Batch 3250: 104000 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,403 - __main__ - INFO -   Batch 3300: 105600 patches generated (52.0s elapsed)
+2025-11-27 23:12:28,406 - __main__ - INFO -   Batch 3350: 107200 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,410 - __main__ - INFO -   Batch 3400: 108800 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,413 - __main__ - INFO -   Batch 3450: 110400 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,417 - __main__ - INFO -   Batch 3500: 112000 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,420 - __main__ - INFO -   Batch 3550: 113600 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,424 - __main__ - INFO -   Batch 3600: 115200 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,427 - __main__ - INFO -   Batch 3650: 116800 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,431 - __main__ - INFO -   Batch 3700: 118400 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,435 - __main__ - INFO -   Batch 3750: 120000 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,438 - __main__ - INFO -   Batch 3800: 121600 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,442 - __main__ - INFO -   Batch 3850: 123200 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,445 - __main__ - INFO -   Batch 3900: 124800 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,449 - __main__ - INFO -   Batch 3950: 126400 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,452 - __main__ - INFO -   Batch 4000: 128000 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,456 - __main__ - INFO -   Batch 4050: 129600 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,459 - __main__ - INFO -   Batch 4100: 131200 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,463 - __main__ - INFO -   Batch 4150: 132800 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,466 - __main__ - INFO -   Batch 4200: 134400 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,470 - __main__ - INFO -   Batch 4250: 136000 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,473 - __main__ - INFO -   Batch 4300: 137600 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,477 - __main__ - INFO -   Batch 4350: 139200 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,481 - __main__ - INFO -   Batch 4400: 140800 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,484 - __main__ - INFO -   Batch 4450: 142400 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,488 - __main__ - INFO -   Batch 4500: 144000 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,491 - __main__ - INFO -   Batch 4550: 145600 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,495 - __main__ - INFO -   Batch 4600: 147200 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,498 - __main__ - INFO -   Batch 4650: 148800 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,502 - __main__ - INFO -   Batch 4700: 150400 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,505 - __main__ - INFO -   Batch 4750: 152000 patches generated (52.1s elapsed)
+2025-11-27 23:12:28,509 - __main__ - INFO -   Batch 4800: 153600 patches generated (52.2s elapsed)
+2025-11-27 23:12:28,513 - __main__ - INFO -   Batch 4850: 155200 patches generated (52.2s elapsed)
+2025-11-27 23:12:28,795 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:12:28,798 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:12:28,801 - lc_speckle_analysis.config - INFO - Processing 1248 polygons for image 20220611_054221_30c805
+2025-11-27 23:12:29,934 - lc_speckle_analysis.config - INFO -   Processing polygon 50/1248
+2025-11-27 23:12:31,021 - lc_speckle_analysis.config - INFO -   Processing polygon 100/1248
+2025-11-27 23:12:32,733 - lc_speckle_analysis.config - INFO -   Processing polygon 150/1248
+2025-11-27 23:12:34,090 - lc_speckle_analysis.config - INFO -   Processing polygon 200/1248
+2025-11-27 23:12:35,117 - lc_speckle_analysis.config - INFO -   Processing polygon 250/1248
+2025-11-27 23:12:36,252 - lc_speckle_analysis.config - INFO -   Processing polygon 300/1248
+2025-11-27 23:12:37,174 - lc_speckle_analysis.config - INFO -   Processing polygon 350/1248
+2025-11-27 23:12:37,998 - lc_speckle_analysis.config - INFO -   Processing polygon 400/1248
+2025-11-27 23:12:38,968 - lc_speckle_analysis.config - INFO -   Processing polygon 450/1248
+2025-11-27 23:12:39,713 - lc_speckle_analysis.config - INFO -   Processing polygon 500/1248
+2025-11-27 23:12:40,371 - lc_speckle_analysis.config - INFO -   Processing polygon 550/1248
+2025-11-27 23:12:41,057 - lc_speckle_analysis.config - INFO -   Processing polygon 600/1248
+2025-11-27 23:12:41,706 - lc_speckle_analysis.config - INFO -   Processing polygon 650/1248
+2025-11-27 23:12:42,383 - lc_speckle_analysis.config - INFO -   Processing polygon 700/1248
+2025-11-27 23:12:42,977 - lc_speckle_analysis.config - INFO -   Processing polygon 750/1248
+2025-11-27 23:12:43,669 - lc_speckle_analysis.config - INFO -   Processing polygon 800/1248
+2025-11-27 23:12:44,250 - lc_speckle_analysis.config - INFO -   Processing polygon 850/1248
+2025-11-27 23:12:44,799 - lc_speckle_analysis.config - INFO -   Processing polygon 900/1248
+2025-11-27 23:12:45,300 - lc_speckle_analysis.config - INFO -   Processing polygon 950/1248
+2025-11-27 23:12:45,853 - lc_speckle_analysis.config - INFO -   Processing polygon 1000/1248
+2025-11-27 23:12:46,545 - lc_speckle_analysis.config - INFO -   Processing polygon 1050/1248
+2025-11-27 23:12:47,016 - lc_speckle_analysis.config - INFO -   Processing polygon 1100/1248
+2025-11-27 23:12:47,523 - lc_speckle_analysis.config - INFO -   Processing polygon 1150/1248
+2025-11-27 23:12:47,977 - lc_speckle_analysis.config - INFO -   Processing polygon 1200/1248
+2025-11-27 23:12:49,885 - lc_speckle_analysis.config - INFO - Cached 62400 patches for 20220611 in train_e6934ec4dbd7.pkl
+2025-11-27 23:12:49,886 - lc_speckle_analysis.config - INFO - Cached 62400 patches for 20220611_054221_30c805
+2025-11-27 23:12:52,163 - lc_speckle_analysis.config - INFO - Loaded 62400 cached patches for 20220611 from train_e6934ec4dbd7.pkl
+2025-11-27 23:12:52,174 - __main__ - INFO -   Batch 4900: 156800 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,177 - __main__ - INFO -   Batch 4950: 158400 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,181 - __main__ - INFO -   Batch 5000: 160000 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,184 - __main__ - INFO -   Batch 5050: 161600 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,188 - __main__ - INFO -   Batch 5100: 163200 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,191 - __main__ - INFO -   Batch 5150: 164800 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,195 - __main__ - INFO -   Batch 5200: 166400 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,199 - __main__ - INFO -   Batch 5250: 168000 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,202 - __main__ - INFO -   Batch 5300: 169600 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,206 - __main__ - INFO -   Batch 5350: 171200 patches generated (75.8s elapsed)
+2025-11-27 23:12:52,209 - __main__ - INFO -   Batch 5400: 172800 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,213 - __main__ - INFO -   Batch 5450: 174400 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,216 - __main__ - INFO -   Batch 5500: 176000 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,220 - __main__ - INFO -   Batch 5550: 177600 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,223 - __main__ - INFO -   Batch 5600: 179200 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,227 - __main__ - INFO -   Batch 5650: 180800 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,230 - __main__ - INFO -   Batch 5700: 182400 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,234 - __main__ - INFO -   Batch 5750: 184000 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,237 - __main__ - INFO -   Batch 5800: 185600 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,241 - __main__ - INFO -   Batch 5850: 187200 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,245 - __main__ - INFO -   Batch 5900: 188800 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,248 - __main__ - INFO -   Batch 5950: 190400 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,252 - __main__ - INFO -   Batch 6000: 192000 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,255 - __main__ - INFO -   Batch 6050: 193600 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,259 - __main__ - INFO -   Batch 6100: 195200 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,262 - __main__ - INFO -   Batch 6150: 196800 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,266 - __main__ - INFO -   Batch 6200: 198400 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,270 - __main__ - INFO -   Batch 6250: 200000 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,273 - __main__ - INFO -   Batch 6300: 201600 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,277 - __main__ - INFO -   Batch 6350: 203200 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,280 - __main__ - INFO -   Batch 6400: 204800 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,284 - __main__ - INFO -   Batch 6450: 206400 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,287 - __main__ - INFO -   Batch 6500: 208000 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,291 - __main__ - INFO -   Batch 6550: 209600 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,295 - __main__ - INFO -   Batch 6600: 211200 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,298 - __main__ - INFO -   Batch 6650: 212800 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,302 - __main__ - INFO -   Batch 6700: 214400 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,306 - __main__ - INFO -   Batch 6750: 216000 patches generated (75.9s elapsed)
+2025-11-27 23:12:52,309 - __main__ - INFO -   Batch 6800: 217600 patches generated (76.0s elapsed)
+2025-11-27 23:12:52,434 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:12:52,437 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:12:52,439 - lc_speckle_analysis.config - INFO - Processing 137 polygons for image 20220611_054246_3a45d5
+2025-11-27 23:12:53,441 - lc_speckle_analysis.config - INFO -   Processing polygon 50/137
+2025-11-27 23:12:54,066 - lc_speckle_analysis.config - INFO -   Processing polygon 100/137
+2025-11-27 23:12:54,672 - lc_speckle_analysis.config - INFO - Cached 6850 patches for 20220611 in train_2459f3395b8b.pkl
+2025-11-27 23:12:54,673 - lc_speckle_analysis.config - INFO - Cached 6850 patches for 20220611_054246_3a45d5
+2025-11-27 23:12:54,840 - lc_speckle_analysis.config - INFO - Loaded 6850 cached patches for 20220611 from train_2459f3395b8b.pkl
+2025-11-27 23:12:54,844 - __main__ - INFO -   Batch 6850: 219200 patches generated (78.5s elapsed)
+2025-11-27 23:12:54,846 - __main__ - INFO -   Batch 6900: 220800 patches generated (78.5s elapsed)
+2025-11-27 23:12:54,848 - __main__ - INFO -   Batch 6950: 222400 patches generated (78.5s elapsed)
+2025-11-27 23:12:54,851 - __main__ - INFO -   Batch 7000: 224000 patches generated (78.5s elapsed)
+2025-11-27 23:12:54,864 - lc_speckle_analysis.config - INFO - Final batch: 23 patches for train mode
+2025-11-27 23:12:54,866 - __main__ - INFO -   Completed: All available data processed for train
+2025-11-27 23:12:54,867 - __main__ - INFO - ✅ TRAIN mode completed:
+2025-11-27 23:12:54,867 - __main__ - INFO -   Batches: 7017
+2025-11-27 23:12:54,867 - __main__ - INFO -   Patches: 224535
+2025-11-27 23:12:54,867 - __main__ - INFO -   Errors: 0
+2025-11-27 23:12:54,867 - __main__ - INFO -   Time: 78.5s (2859.9 patches/sec)
+2025-11-27 23:12:54,867 - __main__ - INFO - 
+📦 Processing mode 2/3: VALIDATION
+2025-11-27 23:12:54,867 - __main__ - INFO - ------------------------------------------------------------
+2025-11-27 23:12:54,868 - __main__ - INFO - 🚀 Starting patch generation for VALIDATION mode
+2025-11-27 23:12:54,868 - __main__ - INFO - Target: 50 samples per polygon
+2025-11-27 23:12:54,868 - __main__ - INFO - Available polygons: 1497
+2025-11-27 23:12:54,868 - __main__ - INFO - Expected batches: ~2339
+2025-11-27 23:12:54,868 - lc_speckle_analysis.config - INFO - Starting batch generation for validation mode
+2025-11-27 23:12:54,868 - lc_speckle_analysis.config - INFO - Loading cached patches for validation mode
+2025-11-27 23:12:54,869 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:12:54,870 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:12:54,871 - lc_speckle_analysis.config - INFO - Processing 40 polygons for image 20220611_054131_20c64d
+2025-11-27 23:12:55,789 - lc_speckle_analysis.config - INFO - Cached 2000 patches for 20220611 in validation_4d6e094f5178.pkl
+2025-11-27 23:12:55,789 - lc_speckle_analysis.config - INFO - Cached 2000 patches for 20220611_054131_20c64d
+2025-11-27 23:12:55,820 - lc_speckle_analysis.config - INFO - Loaded 2000 cached patches for 20220611 from validation_4d6e094f5178.pkl
+2025-11-27 23:12:55,822 - __main__ - INFO -   Batch 50: 1600 patches generated (1.0s elapsed)
+2025-11-27 23:12:55,825 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:12:55,825 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:12:55,827 - lc_speckle_analysis.config - INFO - Processing 1012 polygons for image 20220611_054156_82bc33
+2025-11-27 23:12:57,378 - lc_speckle_analysis.config - INFO -   Processing polygon 50/1012
+2025-11-27 23:12:58,647 - lc_speckle_analysis.config - INFO -   Processing polygon 100/1012
+2025-11-27 23:12:59,874 - lc_speckle_analysis.config - INFO -   Processing polygon 150/1012
+2025-11-27 23:13:01,038 - lc_speckle_analysis.config - INFO -   Processing polygon 200/1012
+2025-11-27 23:13:01,955 - lc_speckle_analysis.config - INFO -   Processing polygon 250/1012
+2025-11-27 23:13:02,905 - lc_speckle_analysis.config - INFO -   Processing polygon 300/1012
+2025-11-27 23:13:03,735 - lc_speckle_analysis.config - INFO -   Processing polygon 350/1012
+2025-11-27 23:13:04,582 - lc_speckle_analysis.config - INFO -   Processing polygon 400/1012
+2025-11-27 23:13:05,400 - lc_speckle_analysis.config - INFO -   Processing polygon 450/1012
+2025-11-27 23:13:06,173 - lc_speckle_analysis.config - INFO -   Processing polygon 500/1012
+2025-11-27 23:13:06,815 - lc_speckle_analysis.config - INFO -   Processing polygon 550/1012
+2025-11-27 23:13:07,507 - lc_speckle_analysis.config - INFO -   Processing polygon 600/1012
+2025-11-27 23:13:08,117 - lc_speckle_analysis.config - INFO -   Processing polygon 650/1012
+2025-11-27 23:13:08,959 - lc_speckle_analysis.config - INFO -   Processing polygon 700/1012
+2025-11-27 23:13:09,699 - lc_speckle_analysis.config - INFO -   Processing polygon 750/1012
+2025-11-27 23:13:10,366 - lc_speckle_analysis.config - INFO -   Processing polygon 800/1012
+2025-11-27 23:13:11,088 - lc_speckle_analysis.config - INFO -   Processing polygon 850/1012
+2025-11-27 23:13:11,756 - lc_speckle_analysis.config - INFO -   Processing polygon 900/1012
+2025-11-27 23:13:12,340 - lc_speckle_analysis.config - INFO -   Processing polygon 950/1012
+2025-11-27 23:13:12,942 - lc_speckle_analysis.config - INFO -   Processing polygon 1000/1012
+2025-11-27 23:13:14,540 - lc_speckle_analysis.config - INFO - Cached 50600 patches for 20220611 in validation_5536baf5e8ac.pkl
+2025-11-27 23:13:14,541 - lc_speckle_analysis.config - INFO - Cached 50600 patches for 20220611_054156_82bc33
+2025-11-27 23:13:16,181 - lc_speckle_analysis.config - INFO - Loaded 50600 cached patches for 20220611 from validation_5536baf5e8ac.pkl
+2025-11-27 23:13:16,189 - __main__ - INFO -   Batch 100: 3200 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,193 - __main__ - INFO -   Batch 150: 4800 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,196 - __main__ - INFO -   Batch 200: 6400 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,199 - __main__ - INFO -   Batch 250: 8000 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,203 - __main__ - INFO -   Batch 300: 9600 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,206 - __main__ - INFO -   Batch 350: 11200 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,209 - __main__ - INFO -   Batch 400: 12800 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,213 - __main__ - INFO -   Batch 450: 14400 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,216 - __main__ - INFO -   Batch 500: 16000 patches generated (21.3s elapsed)
+2025-11-27 23:13:16,219 - __main__ - INFO -   Batch 550: 17600 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,223 - __main__ - INFO -   Batch 600: 19200 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,226 - __main__ - INFO -   Batch 650: 20800 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,229 - __main__ - INFO -   Batch 700: 22400 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,233 - __main__ - INFO -   Batch 750: 24000 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,236 - __main__ - INFO -   Batch 800: 25600 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,240 - __main__ - INFO -   Batch 850: 27200 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,243 - __main__ - INFO -   Batch 900: 28800 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,246 - __main__ - INFO -   Batch 950: 30400 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,250 - __main__ - INFO -   Batch 1000: 32000 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,253 - __main__ - INFO -   Batch 1050: 33600 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,256 - __main__ - INFO -   Batch 1100: 35200 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,260 - __main__ - INFO -   Batch 1150: 36800 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,263 - __main__ - INFO -   Batch 1200: 38400 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,266 - __main__ - INFO -   Batch 1250: 40000 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,270 - __main__ - INFO -   Batch 1300: 41600 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,273 - __main__ - INFO -   Batch 1350: 43200 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,277 - __main__ - INFO -   Batch 1400: 44800 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,280 - __main__ - INFO -   Batch 1450: 46400 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,283 - __main__ - INFO -   Batch 1500: 48000 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,287 - __main__ - INFO -   Batch 1550: 49600 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,290 - __main__ - INFO -   Batch 1600: 51200 patches generated (21.4s elapsed)
+2025-11-27 23:13:16,398 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:13:16,400 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:13:16,402 - lc_speckle_analysis.config - INFO - Processing 404 polygons for image 20220611_054221_30c805
+2025-11-27 23:13:17,773 - lc_speckle_analysis.config - INFO -   Processing polygon 50/404
+2025-11-27 23:13:18,898 - lc_speckle_analysis.config - INFO -   Processing polygon 100/404
+2025-11-27 23:13:19,767 - lc_speckle_analysis.config - INFO -   Processing polygon 150/404
+2025-11-27 23:13:20,699 - lc_speckle_analysis.config - INFO -   Processing polygon 200/404
+2025-11-27 23:13:21,666 - lc_speckle_analysis.config - INFO -   Processing polygon 250/404
+2025-11-27 23:13:22,585 - lc_speckle_analysis.config - INFO -   Processing polygon 300/404
+2025-11-27 23:13:23,581 - lc_speckle_analysis.config - INFO -   Processing polygon 350/404
+2025-11-27 23:13:24,271 - lc_speckle_analysis.config - INFO -   Processing polygon 400/404
+2025-11-27 23:13:24,712 - lc_speckle_analysis.config - INFO - Cached 20200 patches for 20220611 in validation_0c7f6b3a08ed.pkl
+2025-11-27 23:13:24,713 - lc_speckle_analysis.config - INFO - Cached 20200 patches for 20220611_054221_30c805
+2025-11-27 23:13:25,200 - lc_speckle_analysis.config - INFO - Loaded 20200 cached patches for 20220611 from validation_0c7f6b3a08ed.pkl
+2025-11-27 23:13:25,202 - __main__ - INFO -   Batch 1650: 52800 patches generated (30.3s elapsed)
+2025-11-27 23:13:25,206 - __main__ - INFO -   Batch 1700: 54400 patches generated (30.3s elapsed)
+2025-11-27 23:13:25,208 - __main__ - INFO -   Batch 1750: 56000 patches generated (30.3s elapsed)
+2025-11-27 23:13:25,210 - __main__ - INFO -   Batch 1800: 57600 patches generated (30.3s elapsed)
+2025-11-27 23:13:25,213 - __main__ - INFO -   Batch 1850: 59200 patches generated (30.3s elapsed)
+2025-11-27 23:13:25,215 - __main__ - INFO -   Batch 1900: 60800 patches generated (30.3s elapsed)
+2025-11-27 23:13:25,217 - __main__ - INFO -   Batch 1950: 62400 patches generated (30.3s elapsed)
+2025-11-27 23:13:25,219 - __main__ - INFO -   Batch 2000: 64000 patches generated (30.4s elapsed)
+2025-11-27 23:13:25,222 - __main__ - INFO -   Batch 2050: 65600 patches generated (30.4s elapsed)
+2025-11-27 23:13:25,224 - __main__ - INFO -   Batch 2100: 67200 patches generated (30.4s elapsed)
+2025-11-27 23:13:25,226 - __main__ - INFO -   Batch 2150: 68800 patches generated (30.4s elapsed)
+2025-11-27 23:13:25,229 - __main__ - INFO -   Batch 2200: 70400 patches generated (30.4s elapsed)
+2025-11-27 23:13:25,231 - __main__ - INFO -   Batch 2250: 72000 patches generated (30.4s elapsed)
+2025-11-27 23:13:25,259 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:13:25,260 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:13:25,261 - lc_speckle_analysis.config - INFO - Processing 41 polygons for image 20220611_054246_3a45d5
+2025-11-27 23:13:26,051 - lc_speckle_analysis.config - INFO - Cached 2050 patches for 20220611 in validation_3d31bbca7d74.pkl
+2025-11-27 23:13:26,051 - lc_speckle_analysis.config - INFO - Cached 2050 patches for 20220611_054246_3a45d5
+2025-11-27 23:13:26,079 - lc_speckle_analysis.config - INFO - Loaded 2050 cached patches for 20220611 from validation_3d31bbca7d74.pkl
+2025-11-27 23:13:26,081 - __main__ - INFO -   Batch 2300: 73600 patches generated (31.2s elapsed)
+2025-11-27 23:13:26,084 - lc_speckle_analysis.config - INFO - Final batch: 2 patches for validation mode
+2025-11-27 23:13:26,084 - __main__ - INFO -   Completed: All available data processed for validation
+2025-11-27 23:13:26,086 - __main__ - INFO - ✅ VALIDATION mode completed:
+2025-11-27 23:13:26,086 - __main__ - INFO -   Batches: 2340
+2025-11-27 23:13:26,086 - __main__ - INFO -   Patches: 74850
+2025-11-27 23:13:26,086 - __main__ - INFO -   Errors: 0
+2025-11-27 23:13:26,086 - __main__ - INFO -   Time: 31.2s (2397.7 patches/sec)
+2025-11-27 23:13:26,086 - __main__ - INFO - 
+📦 Processing mode 3/3: TEST
+2025-11-27 23:13:26,086 - __main__ - INFO - ------------------------------------------------------------
+2025-11-27 23:13:26,086 - __main__ - INFO - 🚀 Starting patch generation for TEST mode
+2025-11-27 23:13:26,086 - __main__ - INFO - Target: 50 samples per polygon
+2025-11-27 23:13:26,086 - __main__ - INFO - Available polygons: 1497
+2025-11-27 23:13:26,087 - __main__ - INFO - Expected batches: ~2339
+2025-11-27 23:13:26,087 - lc_speckle_analysis.config - INFO - Starting batch generation for test mode
+2025-11-27 23:13:26,087 - lc_speckle_analysis.config - INFO - Loading cached patches for test mode
+2025-11-27 23:13:26,088 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:13:26,089 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:13:26,090 - lc_speckle_analysis.config - INFO - Processing 27 polygons for image 20220611_054131_20c64d
+2025-11-27 23:13:26,738 - lc_speckle_analysis.config - INFO - Cached 1350 patches for 20220611 in test_6060b1a2931f.pkl
+2025-11-27 23:13:26,738 - lc_speckle_analysis.config - INFO - Cached 1350 patches for 20220611_054131_20c64d
+2025-11-27 23:13:26,757 - lc_speckle_analysis.config - INFO - Loaded 1350 cached patches for 20220611 from test_6060b1a2931f.pkl
+2025-11-27 23:13:26,760 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:13:26,760 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:13:26,761 - lc_speckle_analysis.config - INFO - Processing 1002 polygons for image 20220611_054156_82bc33
+2025-11-27 23:13:28,348 - lc_speckle_analysis.config - INFO -   Processing polygon 50/1002
+2025-11-27 23:13:29,724 - lc_speckle_analysis.config - INFO -   Processing polygon 100/1002
+2025-11-27 23:13:30,812 - lc_speckle_analysis.config - INFO -   Processing polygon 150/1002
+2025-11-27 23:13:31,959 - lc_speckle_analysis.config - INFO -   Processing polygon 200/1002
+2025-11-27 23:13:32,945 - lc_speckle_analysis.config - INFO -   Processing polygon 250/1002
+2025-11-27 23:13:33,809 - lc_speckle_analysis.config - INFO -   Processing polygon 300/1002
+2025-11-27 23:13:34,754 - lc_speckle_analysis.config - INFO -   Processing polygon 350/1002
+2025-11-27 23:13:35,456 - lc_speckle_analysis.config - INFO -   Processing polygon 400/1002
+2025-11-27 23:13:36,218 - lc_speckle_analysis.config - INFO -   Processing polygon 450/1002
+2025-11-27 23:13:36,960 - lc_speckle_analysis.config - INFO -   Processing polygon 500/1002
+2025-11-27 23:13:37,685 - lc_speckle_analysis.config - INFO -   Processing polygon 550/1002
+2025-11-27 23:13:38,340 - lc_speckle_analysis.config - INFO -   Processing polygon 600/1002
+2025-11-27 23:13:39,043 - lc_speckle_analysis.config - INFO -   Processing polygon 650/1002
+2025-11-27 23:13:39,744 - lc_speckle_analysis.config - INFO -   Processing polygon 700/1002
+2025-11-27 23:13:40,493 - lc_speckle_analysis.config - INFO -   Processing polygon 750/1002
+2025-11-27 23:13:41,142 - lc_speckle_analysis.config - INFO -   Processing polygon 800/1002
+2025-11-27 23:13:41,746 - lc_speckle_analysis.config - INFO -   Processing polygon 850/1002
+2025-11-27 23:13:42,344 - lc_speckle_analysis.config - INFO -   Processing polygon 900/1002
+2025-11-27 23:13:42,954 - lc_speckle_analysis.config - INFO -   Processing polygon 950/1002
+2025-11-27 23:13:43,533 - lc_speckle_analysis.config - INFO -   Processing polygon 1000/1002
+2025-11-27 23:13:44,520 - lc_speckle_analysis.config - INFO - Cached 50100 patches for 20220611 in test_a4b83dea0681.pkl
+2025-11-27 23:13:44,521 - lc_speckle_analysis.config - INFO - Cached 50100 patches for 20220611_054156_82bc33
+2025-11-27 23:13:45,782 - lc_speckle_analysis.config - INFO - Loaded 50100 cached patches for 20220611 from test_a4b83dea0681.pkl
+2025-11-27 23:13:45,787 - __main__ - INFO -   Batch 50: 1600 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,790 - __main__ - INFO -   Batch 100: 3200 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,792 - __main__ - INFO -   Batch 150: 4800 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,795 - __main__ - INFO -   Batch 200: 6400 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,797 - __main__ - INFO -   Batch 250: 8000 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,799 - __main__ - INFO -   Batch 300: 9600 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,802 - __main__ - INFO -   Batch 350: 11200 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,804 - __main__ - INFO -   Batch 400: 12800 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,807 - __main__ - INFO -   Batch 450: 14400 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,809 - __main__ - INFO -   Batch 500: 16000 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,812 - __main__ - INFO -   Batch 550: 17600 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,814 - __main__ - INFO -   Batch 600: 19200 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,816 - __main__ - INFO -   Batch 650: 20800 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,819 - __main__ - INFO -   Batch 700: 22400 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,821 - __main__ - INFO -   Batch 750: 24000 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,823 - __main__ - INFO -   Batch 800: 25600 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,826 - __main__ - INFO -   Batch 850: 27200 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,828 - __main__ - INFO -   Batch 900: 28800 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,831 - __main__ - INFO -   Batch 950: 30400 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,833 - __main__ - INFO -   Batch 1000: 32000 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,835 - __main__ - INFO -   Batch 1050: 33600 patches generated (19.7s elapsed)
+2025-11-27 23:13:45,838 - __main__ - INFO -   Batch 1100: 35200 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,840 - __main__ - INFO -   Batch 1150: 36800 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,843 - __main__ - INFO -   Batch 1200: 38400 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,845 - __main__ - INFO -   Batch 1250: 40000 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,847 - __main__ - INFO -   Batch 1300: 41600 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,850 - __main__ - INFO -   Batch 1350: 43200 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,852 - __main__ - INFO -   Batch 1400: 44800 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,855 - __main__ - INFO -   Batch 1450: 46400 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,857 - __main__ - INFO -   Batch 1500: 48000 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,859 - __main__ - INFO -   Batch 1550: 49600 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,862 - __main__ - INFO -   Batch 1600: 51200 patches generated (19.8s elapsed)
+2025-11-27 23:13:45,925 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:13:45,927 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:13:45,928 - lc_speckle_analysis.config - INFO - Processing 420 polygons for image 20220611_054221_30c805
+2025-11-27 23:13:47,179 - lc_speckle_analysis.config - INFO -   Processing polygon 50/420
+2025-11-27 23:13:48,279 - lc_speckle_analysis.config - INFO -   Processing polygon 100/420
+2025-11-27 23:13:49,150 - lc_speckle_analysis.config - INFO -   Processing polygon 150/420
+2025-11-27 23:13:49,963 - lc_speckle_analysis.config - INFO -   Processing polygon 200/420
+2025-11-27 23:13:50,959 - lc_speckle_analysis.config - INFO -   Processing polygon 250/420
+2025-11-27 23:13:51,786 - lc_speckle_analysis.config - INFO -   Processing polygon 300/420
+2025-11-27 23:13:52,654 - lc_speckle_analysis.config - INFO -   Processing polygon 350/420
+2025-11-27 23:13:53,441 - lc_speckle_analysis.config - INFO -   Processing polygon 400/420
+2025-11-27 23:13:54,086 - lc_speckle_analysis.config - INFO - Cached 21000 patches for 20220611 in test_b82b099c39e5.pkl
+2025-11-27 23:13:54,087 - lc_speckle_analysis.config - INFO - Cached 21000 patches for 20220611_054221_30c805
+2025-11-27 23:13:54,545 - lc_speckle_analysis.config - INFO - Loaded 21000 cached patches for 20220611 from test_b82b099c39e5.pkl
+2025-11-27 23:13:54,549 - __main__ - INFO -   Batch 1650: 52800 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,551 - __main__ - INFO -   Batch 1700: 54400 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,554 - __main__ - INFO -   Batch 1750: 56000 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,556 - __main__ - INFO -   Batch 1800: 57600 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,558 - __main__ - INFO -   Batch 1850: 59200 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,560 - __main__ - INFO -   Batch 1900: 60800 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,563 - __main__ - INFO -   Batch 1950: 62400 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,565 - __main__ - INFO -   Batch 2000: 64000 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,567 - __main__ - INFO -   Batch 2050: 65600 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,570 - __main__ - INFO -   Batch 2100: 67200 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,572 - __main__ - INFO -   Batch 2150: 68800 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,574 - __main__ - INFO -   Batch 2200: 70400 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,577 - __main__ - INFO -   Batch 2250: 72000 patches generated (28.5s elapsed)
+2025-11-27 23:13:54,606 - lc_speckle_analysis.config - WARNING - Cache not found for 20220611, generating patches...
+2025-11-27 23:13:54,607 - lc_speckle_analysis.config - INFO - Generating patches for 20220611 (this may take a while)
+2025-11-27 23:13:54,609 - lc_speckle_analysis.config - INFO - Processing 48 polygons for image 20220611_054246_3a45d5
+2025-11-27 23:13:55,618 - lc_speckle_analysis.config - INFO - Cached 2400 patches for 20220611 in test_cdc2a339621f.pkl
+2025-11-27 23:13:55,618 - lc_speckle_analysis.config - INFO - Cached 2400 patches for 20220611_054246_3a45d5
+2025-11-27 23:13:55,650 - lc_speckle_analysis.config - INFO - Loaded 2400 cached patches for 20220611 from test_cdc2a339621f.pkl
+2025-11-27 23:13:55,652 - __main__ - INFO -   Batch 2300: 73600 patches generated (29.6s elapsed)
+2025-11-27 23:13:55,656 - lc_speckle_analysis.config - INFO - Final batch: 2 patches for test mode
+2025-11-27 23:13:55,656 - __main__ - INFO -   Completed: All available data processed for test
+2025-11-27 23:13:55,657 - __main__ - INFO - ✅ TEST mode completed:
+2025-11-27 23:13:55,657 - __main__ - INFO -   Batches: 2340
+2025-11-27 23:13:55,657 - __main__ - INFO -   Patches: 74850
+2025-11-27 23:13:55,657 - __main__ - INFO -   Errors: 0
+2025-11-27 23:13:55,657 - __main__ - INFO -   Time: 29.6s (2531.2 patches/sec)
+2025-11-27 23:13:55,657 - __main__ - INFO - 
+================================================================================
+2025-11-27 23:13:55,657 - __main__ - INFO - 🎉 PATCH GENERATION SUMMARY
+2025-11-27 23:13:55,659 - __main__ - INFO - ================================================================================
+2025-11-27 23:13:55,659 - __main__ - INFO -        TRAIN:  224,535 patches ( 7,017 batches,   0 errors)
+2025-11-27 23:13:55,659 - __main__ - INFO -   VALIDATION:   74,850 patches ( 2,340 batches,   0 errors)
+2025-11-27 23:13:55,659 - __main__ - INFO -         TEST:   74,850 patches ( 2,340 batches,   0 errors)
+2025-11-27 23:13:55,659 - __main__ - INFO - --------------------------------------------------------------------------------
+2025-11-27 23:13:55,659 - __main__ - INFO -        TOTAL:  374,235 patches (11,697 batches,   0 errors)
+2025-11-27 23:13:55,659 - __main__ - INFO - 
+⏱️  Total time: 245.2s (4.1 min)
+2025-11-27 23:13:55,659 - __main__ - INFO - 📊 Overall rate: 1526.1 patches/sec
+2025-11-27 23:13:55,661 - __main__ - INFO - 💾 Cache files: 0 files, 0.0 MB
+2025-11-27 23:13:55,661 - __main__ - INFO - ✅ All patches generated successfully!
+2025-11-27 23:13:55,661 - __main__ - INFO - 📝 Full log available at: /mnt/ssddata/users/david/code/lc_specific_speckle_analysis/patch_generation.log
