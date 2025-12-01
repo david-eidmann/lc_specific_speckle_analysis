@@ -26,16 +26,18 @@ class TestConv2D_N2(nn.Module):
     Total parameters: ~1,400
     """
     
-    def __init__(self, num_classes: int = 4, dropout_rate: float = 0.2):
+    def __init__(self, patch_size: int = 10, num_classes: int = 4, dropout_rate: float = 0.2):
         """
         Initialize TestConv2D_N2 network.
         
         Args:
+            patch_size: Size of input patches (not used in calculation, for compatibility)
             num_classes: Number of output classes
             dropout_rate: Dropout probability
         """
         super(TestConv2D_N2, self).__init__()
         
+        self.patch_size = patch_size
         self.num_classes = num_classes
         self.dropout_rate = dropout_rate
         
@@ -134,18 +136,19 @@ class TestConv2D_N2(nn.Module):
         return features
 
 
-def create_test_conv2d_n2(num_classes: int = 4, **kwargs) -> TestConv2D_N2:
+def create_test_conv2d_n2(patch_size: int = 10, num_classes: int = 4, **kwargs) -> TestConv2D_N2:
     """
     Factory function to create TestConv2D_N2 model.
     
     Args:
+        patch_size: Size of input patches
         num_classes: Number of output classes
         **kwargs: Additional arguments (dropout_rate, etc.)
         
     Returns:
         TestConv2D_N2 model instance
     """
-    return TestConv2D_N2(num_classes=num_classes, **kwargs)
+    return TestConv2D_N2(patch_size=patch_size, num_classes=num_classes, **kwargs)
 
 
 if __name__ == "__main__":
