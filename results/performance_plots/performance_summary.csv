@@ -1,0 +1,17 @@
+Architecture,Configuration,Overall Accuracy,Macro F1,Best Val Acc,Epochs
+"TestConv2D
+(93,700 params)",Raw + Single,0.701,0.695,0.730,13
+"TestConv2D
+(93,700 params)",Raw + Multi,0.711,0.710,0.723,36
+"TestConv2D_N2
+(1,436 params)",Zeromean + Multi,0.485,0.457,0.482,24
+"TestConv2D
+(93,700 params)",Zeromean + Multi,0.480,0.459,0.494,16
+"TestConv2D_N2
+(1,436 params)",Raw + Multi,0.672,0.653,0.707,47
+"TestConv2D
+(93,700 params)",Zeromean + Single,0.495,0.473,0.523,17
+"TestConv2D_N2
+(1,436 params)",Raw + Single,0.731,0.729,0.735,50
+"TestConv2D_N2
+(1,436 params)",Zeromean + Single,0.521,0.498,0.520,50
