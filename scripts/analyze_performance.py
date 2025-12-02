@@ -254,6 +254,77 @@ def create_f1_comparison_plot(df: pd.DataFrame, output_dir: Path):
     logger.info(f"Saved Macro F1 comparison: {output_path}")
     plt.close()
 
+def create_oa_comparison_plot(df: pd.DataFrame, output_dir: Path):
+    """Create bar plot comparing Overall Accuracy across configurations."""
+    logger.info("Creating Overall Accuracy comparison plot...")
+    
+    # Prepare data for grouped bar plot
+    architectures = ["test_conv2d", "test_conv2d_n2"]
+    arch_labels = ["TestConv2D\n(93,700 params)", "TestConv2D_N2\n(1,436 params)"]
+    
+    # Get unique configurations
+    configs = []
+    config_labels = []
+    for _, row in df.iterrows():
+        config_key = f"{row['data_processing']}_{row['temporal_coverage']}"
+        config_label = f"{row['data_processing'].title()}\n{row['temporal_coverage'].title()}"
+        if config_key not in configs:
+            configs.append(config_key)
+            config_labels.append(config_label)
+    
+    # Extract OA scores for each architecture and configuration
+    arch_oa_data = {}
+    for arch, arch_label in zip(architectures, arch_labels):
+        arch_oa_scores = []
+        for config in configs:
+            matching_rows = df[
+                (df['architecture'] == arch) & 
+                (df['data_processing'] + '_' + df['temporal_coverage'] == config)
+            ]
+            if len(matching_rows) > 0:
+                oa = matching_rows.iloc[0]['overall_accuracy']
+                arch_oa_scores.append(oa)
+            else:
+                arch_oa_scores.append(0.0)
+        arch_oa_data[arch_label] = arch_oa_scores
+    
+    # Create grouped bar plot
+    x = np.arange(len(config_labels))
+    width = 0.35
+    
+    fig, ax = plt.subplots(figsize=(12, 7))
+    
+    colors = ['#FF6B6B', '#4ECDC4']
+    bars = []
+    
+    for i, (arch_label, oa_scores) in enumerate(arch_oa_data.items()):
+        bars.append(ax.bar(x + i*width - width/2, oa_scores, width,
+                          label=arch_label, color=colors[i], alpha=0.8, edgecolor='black'))
+    
+    # Add value labels on bars
+    for bar_group in bars:
+        for bar in bar_group:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(bar.get_x() + bar.get_width()/2., height + 0.01,
+                        f'{height:.3f}', ha='center', va='bottom', fontsize=10, fontweight='bold')
+    
+    ax.set_xlabel('Configuration', fontsize=12)
+    ax.set_ylabel('Overall Accuracy (OA)', fontsize=12)
+    ax.set_title('Overall Accuracy (OA) Comparison by Architecture and Configuration', fontsize=14, fontweight='bold')
+    ax.set_xticks(x)
+    ax.set_xticklabels(config_labels)
+    ax.legend()
+    ax.grid(True, alpha=0.3, axis='y')
+    ax.set_ylim(0, 1)
+    
+    plt.tight_layout()
+    
+    output_path = output_dir / "performance_oa_comparison.png"
+    plt.savefig(output_path, dpi=300, bbox_inches='tight')
+    logger.info(f"Saved OA comparison: {output_path}")
+    plt.close()
+
 def create_per_class_f1_heatmap(df: pd.DataFrame, output_dir: Path):
     """Create heatmap of per-class F1 scores."""
     logger.info("Creating per-class F1 heatmap...")
@@ -398,6 +469,7 @@ def main():
         # Create all performance plots
         create_performance_heatmap(df, output_dir)
         create_f1_comparison_plot(df, output_dir)
+        create_oa_comparison_plot(df, output_dir)
         create_per_class_f1_heatmap(df, output_dir)
         create_performance_summary_table(df, output_dir)
         
