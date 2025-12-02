@@ -1,0 +1,33 @@
+2025-12-02 20:57:23,065 - INFO - 🎯 Starting systematic training of all modular processing configurations
+2025-12-02 20:57:23,065 - INFO - Discovered 24 configuration files:
+2025-12-02 20:57:23,067 - INFO -   - config_base.conf
+2025-12-02 20:57:23,069 - INFO -   - config_base_mean.conf
+2025-12-02 20:57:23,070 - INFO -   - config_base_quantiles.conf
+2025-12-02 20:57:23,070 - INFO -   - config_base_shuffled.conf
+2025-12-02 20:57:23,071 - INFO -   - config_base_std.conf
+2025-12-02 20:57:23,071 - INFO -   - config_base_stdandmean.conf
+2025-12-02 20:57:23,073 - INFO -   - config_normalized.conf
+2025-12-02 20:57:23,073 - INFO -   - config_normalized_mean.conf
+2025-12-02 20:57:23,074 - INFO -   - config_normalized_quantiles.conf
+2025-12-02 20:57:23,074 - INFO -   - config_normalized_shuffled.conf
+2025-12-02 20:57:23,075 - INFO -   - config_normalized_std.conf
+2025-12-02 20:57:23,076 - INFO -   - config_normalized_stdandmean.conf
+2025-12-02 20:57:23,076 - INFO -   - config_zeromean.conf
+2025-12-02 20:57:23,077 - INFO -   - config_zeromean_mean.conf
+2025-12-02 20:57:23,079 - INFO -   - config_zeromean_normalized.conf
+2025-12-02 20:57:23,080 - INFO -   - config_zeromean_normalized_mean.conf
+2025-12-02 20:57:23,081 - INFO -   - config_zeromean_normalized_quantiles.conf
+2025-12-02 20:57:23,081 - INFO -   - config_zeromean_normalized_shuffled.conf
+2025-12-02 20:57:23,082 - INFO -   - config_zeromean_normalized_std.conf
+2025-12-02 20:57:23,083 - INFO -   - config_zeromean_normalized_stdandmean.conf
+2025-12-02 20:57:23,083 - INFO -   - config_zeromean_quantiles.conf
+2025-12-02 20:57:23,085 - INFO -   - config_zeromean_shuffled.conf
+2025-12-02 20:57:23,085 - INFO -   - config_zeromean_std.conf
+2025-12-02 20:57:23,086 - INFO -   - config_zeromean_stdandmean.conf
+2025-12-02 20:57:23,086 - INFO - 📋 Will train 24 configurations
+2025-12-02 20:57:23,087 - INFO - 
+================================================================================
+2025-12-02 20:57:23,087 - INFO - 🔄 PROGRESS: 1/24 - Training config_base
+2025-12-02 20:57:23,088 - INFO - ================================================================================
+2025-12-02 20:57:23,090 - INFO - 🚀 Starting training for: config_base
+2025-12-02 20:57:23,091 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_base.conf

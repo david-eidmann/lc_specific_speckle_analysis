@@ -108,8 +108,11 @@ def apply_quantile_transformation(patch_data: np.ndarray) -> np.ndarray:
         channel_data = processed_data[channel, :, :]
         flat_data = channel_data.flatten().reshape(-1, 1)
         
-        # Use quantile transformer
-        qt = QuantileTransformer(output_distribution='uniform', random_state=42)
+        # Use quantile transformer with appropriate number of quantiles
+        # Set n_quantiles to min(1000, n_samples) to avoid sklearn warning
+        n_samples = flat_data.shape[0]
+        n_quantiles = min(1000, n_samples)
+        qt = QuantileTransformer(output_distribution='uniform', n_quantiles=n_quantiles, random_state=42)
         transformed_flat = qt.fit_transform(flat_data)
         processed_data[channel, :, :] = transformed_flat.reshape(height, width)
     
@@ -233,3 +236,16 @@ def calculate_input_size(aggregation: Optional[str], patch_size: int = 10) -> in
         return 4  # 4 features (VV_mean, VV_std, VH_mean, VH_std)
     else:
         return 2 * patch_size * patch_size  # Spatial data: channels * height * width
+
+
+def get_expected_input_size(patch_size: int, aggregation: Optional[str]) -> int:
+    """Get expected input size for network based on processing configuration.
+    
+    Args:
+        patch_size: Size of spatial patches (only relevant if no aggregation)
+        aggregation: Aggregation type or None
+        
+    Returns:
+        Input size for the network
+    """
+    return calculate_input_size(aggregation, patch_size)
