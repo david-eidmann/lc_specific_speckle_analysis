@@ -41,9 +41,14 @@ class TrainingDataConfig:
     n_patches_per_feature: int
     n_patches_per_area: float
     neural_network: NeuralNetworkConfig
-    data_with_zero_mean: bool = False
+    modus: str = "raw"  # 'data_with_zero_mean' or 'raw'
     equal_class_dist: bool = False
     shuffle_labels: bool = False
+    
+    @property
+    def data_with_zero_mean(self) -> bool:
+        """Backward compatibility property."""
+        return self.modus == "data_with_zero_mean"
 
     @classmethod
     def from_file(cls, config_path: Path) -> "TrainingDataConfig":
@@ -105,14 +110,23 @@ class TrainingDataConfig:
         classes = [int(x.strip()) for x in classes_str.split(',')]
         
         # Parse data preprocessing options with defaults
-        data_with_zero_mean = train_section.getboolean('data_with_zero_mean', False)
+        # Handle both new 'modus' parameter and legacy 'data_with_zero_mean' boolean
+        if 'modus' in train_section:
+            modus = train_section.get('modus', 'raw').strip()
+            if modus not in ['data_with_zero_mean', 'raw']:
+                raise ValueError(f"Invalid modus '{modus}'. Must be 'data_with_zero_mean' or 'raw'")
+        else:
+            # Backward compatibility: convert boolean to modus string
+            data_with_zero_mean_legacy = train_section.getboolean('data_with_zero_mean', False)
+            modus = "data_with_zero_mean" if data_with_zero_mean_legacy else "raw"
+        
         equal_class_dist = train_section.getboolean('equal_class_dist', False)
         shuffle_labels = train_section.getboolean('shuffle_labels', False)
         
         logger.info(f"Training data paths: {train_data_paths}")
         logger.info(f"Column ID: {column_id}")
         logger.info(f"Classes: {classes}")
-        logger.info(f"Data with zero mean: {data_with_zero_mean}")
+        logger.info(f"Data processing modus: {modus}")
         logger.info(f"Equal class distribution: {equal_class_dist}")
         logger.info(f"Shuffle labels: {shuffle_labels}")
         
@@ -203,7 +217,7 @@ class TrainingDataConfig:
             n_patches_per_feature=n_patches_per_feature,
             n_patches_per_area=n_patches_per_area,
             neural_network=neural_network_config,
-            data_with_zero_mean=data_with_zero_mean,
+            modus=modus,
             equal_class_dist=equal_class_dist,
             shuffle_labels=shuffle_labels
         )

@@ -216,8 +216,11 @@ def plot_training_time_comparison(results: List[Dict], output_dir: Path):
         if result['success']:
             time_val = times[result['run_id']]
             
-            # Create short label
-            zero_mean = "ZM" if result['data_with_zero_mean'] else "Raw"
+            # Create short label - handle both new modus parameter and legacy data_with_zero_mean
+            if 'modus' in result:
+                zero_mean = "ZM" if result['modus'] == 'data_with_zero_mean' else "Raw"
+            else:
+                zero_mean = "ZM" if result.get('data_with_zero_mean', False) else "Raw"
             dates = "Single" if "," not in result['dates'] else "Multi"
             label = f"{zero_mean}\n{dates}"
             
@@ -284,8 +287,11 @@ def plot_efficiency_analysis(results: List[Dict], output_dir: Path):
             training_times.append(times[result['run_id']])
             arch_labels.append('TestConv2D' if result['architecture'] == 'test_conv2d' else 'TestConv2D_N2')
             
-            # Configuration description
-            zero_mean = "Zero-mean" if result['data_with_zero_mean'] else "Raw data"
+            # Configuration description - handle both new modus parameter and legacy data_with_zero_mean
+            if 'modus' in result:
+                zero_mean = "Zero-mean" if result['modus'] == 'data_with_zero_mean' else "Raw data"
+            else:
+                zero_mean = "Zero-mean" if result.get('data_with_zero_mean', False) else "Raw data"
             dates = "Single" if "," not in result['dates'] else "Multi-date"
             config_labels.append(f"{zero_mean}, {dates}")
     

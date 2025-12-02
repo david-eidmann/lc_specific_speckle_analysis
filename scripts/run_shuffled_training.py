@@ -35,8 +35,10 @@ def create_shuffled_config() -> str:
         line_stripped = line.strip()
         if line_stripped.startswith('shuffle_labels'):
             lines[i] = "shuffle_labels = True"
+        elif line_stripped.startswith('modus'):
+            lines[i] = "modus = data_with_zero_mean"
         elif line_stripped.startswith('data_with_zero_mean'):
-            lines[i] = "data_with_zero_mean = True"
+            lines[i] = "modus = data_with_zero_mean"
         elif line_stripped.startswith('dates'):
             lines[i] = "dates = 20220611"
         elif line_stripped.startswith('network_architecture_id'):

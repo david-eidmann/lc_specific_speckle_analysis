@@ -39,7 +39,13 @@ def create_f1_barplot_for_run(run_path: str, output_dir: Path):
     metadata = data.get("metadata", {})
     
     architecture = config.get("architecture", "unknown")
-    data_processing = "zero-mean" if config.get("data_with_zero_mean", False) else "raw"
+    # Handle both new 'modus' parameter and legacy 'data_with_zero_mean' boolean
+    modus = config.get("modus", None)
+    if modus:
+        data_processing = "zero-mean" if modus == "data_with_zero_mean" else "raw"
+    else:
+        # Backward compatibility
+        data_processing = "zero-mean" if config.get("data_with_zero_mean", False) else "raw"
     dates = ",".join(config.get("dates", []))
     
     # Extract per-class F1 scores

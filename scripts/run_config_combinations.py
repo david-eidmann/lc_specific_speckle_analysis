@@ -67,7 +67,9 @@ def create_temp_config(base_config: str, shuffle_labels: bool,
         if line_stripped.startswith('shuffle_labels'):
             lines[i] = f"shuffle_labels = {str(shuffle_labels).lower()}"
         elif line_stripped.startswith('data_with_zero_mean'):
-            lines[i] = f"data_with_zero_mean = {str(data_with_zero_mean).lower()}"
+            # Update to new modus parameter format
+            modus_value = 'data_with_zero_mean' if data_with_zero_mean else 'raw'
+            lines[i] = f"modus = '{modus_value}'"
         elif line_stripped.startswith('dates'):
             lines[i] = f"dates = {dates}"
         elif line_stripped.startswith('network_architecture_id'):
