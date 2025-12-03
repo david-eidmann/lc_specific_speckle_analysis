@@ -31,3 +31,250 @@
 2025-12-02 20:57:23,088 - INFO - ================================================================================
 2025-12-02 20:57:23,090 - INFO - 🚀 Starting training for: config_base
 2025-12-02 20:57:23,091 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_base.conf
+2025-12-02 20:58:54,904 - INFO - ✅ SUCCESS: config_base completed in 91.8s
+2025-12-02 20:58:54,911 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 20:58:54,911 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 20:58:59,913 - INFO - 
+================================================================================
+2025-12-02 20:58:59,913 - INFO - 🔄 PROGRESS: 2/24 - Training config_base_mean
+2025-12-02 20:58:59,913 - INFO - ================================================================================
+2025-12-02 20:58:59,913 - INFO - 🚀 Starting training for: config_base_mean
+2025-12-02 20:58:59,913 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_base_mean.conf
+2025-12-02 21:00:33,023 - INFO - ✅ SUCCESS: config_base_mean completed in 93.1s
+2025-12-02 21:00:33,029 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 21:00:33,029 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 21:00:38,029 - INFO - 
+================================================================================
+2025-12-02 21:00:38,029 - INFO - 🔄 PROGRESS: 3/24 - Training config_base_quantiles
+2025-12-02 21:00:38,029 - INFO - ================================================================================
+2025-12-02 21:00:38,029 - INFO - 🚀 Starting training for: config_base_quantiles
+2025-12-02 21:00:38,029 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_base_quantiles.conf
+2025-12-02 21:51:25,249 - INFO - ✅ SUCCESS: config_base_quantiles completed in 3047.2s
+2025-12-02 21:51:25,256 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 21:51:25,257 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 21:51:30,258 - INFO - 
+================================================================================
+2025-12-02 21:51:30,258 - INFO - 🔄 PROGRESS: 4/24 - Training config_base_shuffled
+2025-12-02 21:51:30,258 - INFO - ================================================================================
+2025-12-02 21:51:30,258 - INFO - 🚀 Starting training for: config_base_shuffled
+2025-12-02 21:51:30,258 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_base_shuffled.conf
+2025-12-02 21:53:06,511 - INFO - ✅ SUCCESS: config_base_shuffled completed in 96.3s
+2025-12-02 21:53:06,518 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 21:53:06,519 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 21:53:11,520 - INFO - 
+================================================================================
+2025-12-02 21:53:11,520 - INFO - 🔄 PROGRESS: 5/24 - Training config_base_std
+2025-12-02 21:53:11,520 - INFO - ================================================================================
+2025-12-02 21:53:11,520 - INFO - 🚀 Starting training for: config_base_std
+2025-12-02 21:53:11,520 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_base_std.conf
+2025-12-02 21:54:25,479 - INFO - ✅ SUCCESS: config_base_std completed in 74.0s
+2025-12-02 21:54:25,485 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 21:54:25,485 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 21:54:30,485 - INFO - 
+================================================================================
+2025-12-02 21:54:30,486 - INFO - 🔄 PROGRESS: 6/24 - Training config_base_stdandmean
+2025-12-02 21:54:30,486 - INFO - ================================================================================
+2025-12-02 21:54:30,486 - INFO - 🚀 Starting training for: config_base_stdandmean
+2025-12-02 21:54:30,486 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_base_stdandmean.conf
+2025-12-02 21:55:49,305 - INFO - ✅ SUCCESS: config_base_stdandmean completed in 78.8s
+2025-12-02 21:55:49,311 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 21:55:49,311 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 21:55:54,312 - INFO - 
+================================================================================
+2025-12-02 21:55:54,312 - INFO - 🔄 PROGRESS: 7/24 - Training config_normalized
+2025-12-02 21:55:54,312 - INFO - ================================================================================
+2025-12-02 21:55:54,312 - INFO - 🚀 Starting training for: config_normalized
+2025-12-02 21:55:54,312 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_normalized.conf
+2025-12-02 21:59:40,596 - INFO - ✅ SUCCESS: config_normalized completed in 226.3s
+2025-12-02 21:59:40,603 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 21:59:40,603 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 21:59:45,603 - INFO - 
+================================================================================
+2025-12-02 21:59:45,603 - INFO - 🔄 PROGRESS: 8/24 - Training config_normalized_mean
+2025-12-02 21:59:45,603 - INFO - ================================================================================
+2025-12-02 21:59:45,603 - INFO - 🚀 Starting training for: config_normalized_mean
+2025-12-02 21:59:45,603 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_normalized_mean.conf
+2025-12-02 22:02:40,086 - INFO - ✅ SUCCESS: config_normalized_mean completed in 174.5s
+2025-12-02 22:02:40,094 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 22:02:40,094 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 22:02:45,094 - INFO - 
+================================================================================
+2025-12-02 22:02:45,094 - INFO - 🔄 PROGRESS: 9/24 - Training config_normalized_quantiles
+2025-12-02 22:02:45,094 - INFO - ================================================================================
+2025-12-02 22:02:45,094 - INFO - 🚀 Starting training for: config_normalized_quantiles
+2025-12-02 22:02:45,094 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_normalized_quantiles.conf
+2025-12-02 23:02:45,199 - ERROR - ⏰ TIMEOUT: config_normalized_quantiles - exceeded 1 hour limit
+2025-12-02 23:02:45,206 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:02:45,206 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:02:50,208 - INFO - 
+================================================================================
+2025-12-02 23:02:50,208 - INFO - 🔄 PROGRESS: 10/24 - Training config_normalized_shuffled
+2025-12-02 23:02:50,208 - INFO - ================================================================================
+2025-12-02 23:02:50,208 - INFO - 🚀 Starting training for: config_normalized_shuffled
+2025-12-02 23:02:50,208 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_normalized_shuffled.conf
+2025-12-02 23:07:38,627 - INFO - ✅ SUCCESS: config_normalized_shuffled completed in 288.4s
+2025-12-02 23:07:38,635 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:07:38,635 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:07:43,635 - INFO - 
+================================================================================
+2025-12-02 23:07:43,635 - INFO - 🔄 PROGRESS: 11/24 - Training config_normalized_std
+2025-12-02 23:07:43,635 - INFO - ================================================================================
+2025-12-02 23:07:43,635 - INFO - 🚀 Starting training for: config_normalized_std
+2025-12-02 23:07:43,635 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_normalized_std.conf
+2025-12-02 23:09:14,884 - INFO - ✅ SUCCESS: config_normalized_std completed in 91.2s
+2025-12-02 23:09:14,892 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:09:14,892 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:09:19,892 - INFO - 
+================================================================================
+2025-12-02 23:09:19,893 - INFO - 🔄 PROGRESS: 12/24 - Training config_normalized_stdandmean
+2025-12-02 23:09:19,893 - INFO - ================================================================================
+2025-12-02 23:09:19,893 - INFO - 🚀 Starting training for: config_normalized_stdandmean
+2025-12-02 23:09:19,893 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_normalized_stdandmean.conf
+2025-12-02 23:13:11,175 - INFO - ✅ SUCCESS: config_normalized_stdandmean completed in 231.3s
+2025-12-02 23:13:11,184 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:13:11,184 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:13:16,185 - INFO - 
+================================================================================
+2025-12-02 23:13:16,185 - INFO - 🔄 PROGRESS: 13/24 - Training config_zeromean
+2025-12-02 23:13:16,185 - INFO - ================================================================================
+2025-12-02 23:13:16,185 - INFO - 🚀 Starting training for: config_zeromean
+2025-12-02 23:13:16,185 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean.conf
+2025-12-02 23:14:39,467 - INFO - ✅ SUCCESS: config_zeromean completed in 83.3s
+2025-12-02 23:14:39,476 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:14:39,476 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:14:44,476 - INFO - 
+================================================================================
+2025-12-02 23:14:44,476 - INFO - 🔄 PROGRESS: 14/24 - Training config_zeromean_mean
+2025-12-02 23:14:44,476 - INFO - ================================================================================
+2025-12-02 23:14:44,476 - INFO - 🚀 Starting training for: config_zeromean_mean
+2025-12-02 23:14:44,476 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_mean.conf
+2025-12-02 23:15:44,209 - INFO - ✅ SUCCESS: config_zeromean_mean completed in 59.7s
+2025-12-02 23:15:44,218 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:15:44,218 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:15:49,218 - INFO - 
+================================================================================
+2025-12-02 23:15:49,218 - INFO - 🔄 PROGRESS: 15/24 - Training config_zeromean_normalized
+2025-12-02 23:15:49,218 - INFO - ================================================================================
+2025-12-02 23:15:49,218 - INFO - 🚀 Starting training for: config_zeromean_normalized
+2025-12-02 23:15:49,218 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_normalized.conf
+2025-12-02 23:19:03,442 - INFO - ✅ SUCCESS: config_zeromean_normalized completed in 194.2s
+2025-12-02 23:19:03,451 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:19:03,451 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:19:08,451 - INFO - 
+================================================================================
+2025-12-02 23:19:08,452 - INFO - 🔄 PROGRESS: 16/24 - Training config_zeromean_normalized_mean
+2025-12-02 23:19:08,452 - INFO - ================================================================================
+2025-12-02 23:19:08,452 - INFO - 🚀 Starting training for: config_zeromean_normalized_mean
+2025-12-02 23:19:08,452 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_normalized_mean.conf
+2025-12-02 23:20:49,563 - INFO - ✅ SUCCESS: config_zeromean_normalized_mean completed in 101.1s
+2025-12-02 23:20:49,572 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-02 23:20:49,572 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-02 23:20:54,572 - INFO - 
+================================================================================
+2025-12-02 23:20:54,572 - INFO - 🔄 PROGRESS: 17/24 - Training config_zeromean_normalized_quantiles
+2025-12-02 23:20:54,572 - INFO - ================================================================================
+2025-12-02 23:20:54,572 - INFO - 🚀 Starting training for: config_zeromean_normalized_quantiles
+2025-12-02 23:20:54,572 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_normalized_quantiles.conf
+2025-12-03 00:14:40,912 - INFO - ✅ SUCCESS: config_zeromean_normalized_quantiles completed in 3226.3s
+2025-12-03 00:14:40,923 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 00:14:40,923 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-03 00:14:45,923 - INFO - 
+================================================================================
+2025-12-03 00:14:45,923 - INFO - 🔄 PROGRESS: 18/24 - Training config_zeromean_normalized_shuffled
+2025-12-03 00:14:45,923 - INFO - ================================================================================
+2025-12-03 00:14:45,923 - INFO - 🚀 Starting training for: config_zeromean_normalized_shuffled
+2025-12-03 00:14:45,923 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_normalized_shuffled.conf
+2025-12-03 00:20:28,896 - INFO - ✅ SUCCESS: config_zeromean_normalized_shuffled completed in 343.0s
+2025-12-03 00:20:28,906 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 00:20:28,906 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-03 00:20:33,907 - INFO - 
+================================================================================
+2025-12-03 00:20:33,907 - INFO - 🔄 PROGRESS: 19/24 - Training config_zeromean_normalized_std
+2025-12-03 00:20:33,907 - INFO - ================================================================================
+2025-12-03 00:20:33,907 - INFO - 🚀 Starting training for: config_zeromean_normalized_std
+2025-12-03 00:20:33,907 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_normalized_std.conf
+2025-12-03 00:22:16,322 - INFO - ✅ SUCCESS: config_zeromean_normalized_std completed in 102.4s
+2025-12-03 00:22:16,333 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 00:22:16,333 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-03 00:22:21,333 - INFO - 
+================================================================================
+2025-12-03 00:22:21,334 - INFO - 🔄 PROGRESS: 20/24 - Training config_zeromean_normalized_stdandmean
+2025-12-03 00:22:21,334 - INFO - ================================================================================
+2025-12-03 00:22:21,334 - INFO - 🚀 Starting training for: config_zeromean_normalized_stdandmean
+2025-12-03 00:22:21,334 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_normalized_stdandmean.conf
+2025-12-03 00:24:04,237 - INFO - ✅ SUCCESS: config_zeromean_normalized_stdandmean completed in 102.9s
+2025-12-03 00:24:04,246 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 00:24:04,247 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-03 00:24:09,247 - INFO - 
+================================================================================
+2025-12-03 00:24:09,247 - INFO - 🔄 PROGRESS: 21/24 - Training config_zeromean_quantiles
+2025-12-03 00:24:09,247 - INFO - ================================================================================
+2025-12-03 00:24:09,247 - INFO - 🚀 Starting training for: config_zeromean_quantiles
+2025-12-03 00:24:09,247 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_quantiles.conf
+2025-12-03 01:05:43,211 - INFO - ✅ SUCCESS: config_zeromean_quantiles completed in 2494.0s
+2025-12-03 01:05:43,222 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 01:05:43,222 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-03 01:05:48,222 - INFO - 
+================================================================================
+2025-12-03 01:05:48,222 - INFO - 🔄 PROGRESS: 22/24 - Training config_zeromean_shuffled
+2025-12-03 01:05:48,222 - INFO - ================================================================================
+2025-12-03 01:05:48,222 - INFO - 🚀 Starting training for: config_zeromean_shuffled
+2025-12-03 01:05:48,222 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_shuffled.conf
+2025-12-03 01:07:41,167 - INFO - ✅ SUCCESS: config_zeromean_shuffled completed in 112.9s
+2025-12-03 01:07:41,178 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 01:07:41,178 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-03 01:07:46,178 - INFO - 
+================================================================================
+2025-12-03 01:07:46,178 - INFO - 🔄 PROGRESS: 23/24 - Training config_zeromean_std
+2025-12-03 01:07:46,178 - INFO - ================================================================================
+2025-12-03 01:07:46,178 - INFO - 🚀 Starting training for: config_zeromean_std
+2025-12-03 01:07:46,178 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_std.conf
+2025-12-03 01:09:05,054 - INFO - ✅ SUCCESS: config_zeromean_std completed in 78.9s
+2025-12-03 01:09:05,065 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 01:09:05,065 - INFO - ⏱️  Pausing 5 seconds before next training...
+2025-12-03 01:09:10,066 - INFO - 
+================================================================================
+2025-12-03 01:09:10,066 - INFO - 🔄 PROGRESS: 24/24 - Training config_zeromean_stdandmean
+2025-12-03 01:09:10,066 - INFO - ================================================================================
+2025-12-03 01:09:10,066 - INFO - 🚀 Starting training for: config_zeromean_stdandmean
+2025-12-03 01:09:10,066 - INFO - Executing: poetry run python -m src.lc_speckle_analysis.train_model --config /home/davideidmann/code/lc_specific_speckle_analysis/configs/config_zeromean_stdandmean.conf
+2025-12-03 01:11:21,170 - INFO - ✅ SUCCESS: config_zeromean_stdandmean completed in 131.1s
+2025-12-03 01:11:21,181 - INFO - Results saved to: /home/davideidmann/code/lc_specific_speckle_analysis/training_results/training_results.json
+2025-12-03 01:11:21,181 - INFO - 
+================================================================================
+2025-12-03 01:11:21,181 - INFO - 🏁 TRAINING SUMMARY
+2025-12-03 01:11:21,181 - INFO - ================================================================================
+2025-12-03 01:11:21,181 - INFO - Total configurations: 24
+2025-12-03 01:11:21,181 - INFO - Successful: 23
+2025-12-03 01:11:21,181 - INFO - Failed: 1
+2025-12-03 01:11:21,181 - INFO - Success rate: 95.8%
+2025-12-03 01:11:21,181 - INFO - 
+✅ Successful configurations:
+2025-12-03 01:11:21,181 - INFO -   - config_base (91.8s)
+2025-12-03 01:11:21,181 - INFO -   - config_base_mean (93.1s)
+2025-12-03 01:11:21,181 - INFO -   - config_base_quantiles (3047.2s)
+2025-12-03 01:11:21,181 - INFO -   - config_base_shuffled (96.3s)
+2025-12-03 01:11:21,181 - INFO -   - config_base_std (74.0s)
+2025-12-03 01:11:21,181 - INFO -   - config_base_stdandmean (78.8s)
+2025-12-03 01:11:21,181 - INFO -   - config_normalized (226.3s)
+2025-12-03 01:11:21,181 - INFO -   - config_normalized_mean (174.5s)
+2025-12-03 01:11:21,181 - INFO -   - config_normalized_shuffled (288.4s)
+2025-12-03 01:11:21,181 - INFO -   - config_normalized_std (91.2s)
+2025-12-03 01:11:21,181 - INFO -   - config_normalized_stdandmean (231.3s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean (83.3s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_mean (59.7s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_normalized (194.2s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_normalized_mean (101.1s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_normalized_quantiles (3226.3s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_normalized_shuffled (343.0s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_normalized_std (102.4s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_normalized_stdandmean (102.9s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_quantiles (2494.0s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_shuffled (112.9s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_std (78.9s)
+2025-12-03 01:11:21,181 - INFO -   - config_zeromean_stdandmean (131.1s)
+2025-12-03 01:11:21,181 - INFO - 
+❌ Failed configurations:
+2025-12-03 01:11:21,181 - INFO -   - config_normalized_quantiles: Training timed out after 1 hour
+2025-12-03 01:11:21,181 - INFO - ================================================================================
+2025-12-03 01:11:21,181 - INFO - 🎉 All training completed!
