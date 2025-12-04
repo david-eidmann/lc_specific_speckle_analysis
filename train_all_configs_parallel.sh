@@ -34,7 +34,7 @@ train_config() {
     echo "Starting training: $config_name (PID will be logged)" 
     
     # Run training with poetry on GPU and redirect output to log file
-    poetry run python -m src.lc_speckle_analysis.train_model --config "$config_file" --run-id "parallel_training" >> "$log_file" 2>&1 &
+    cd /home/davideidmann/code/lc_specific_speckle_analysis && PYTHONPATH=src poetry run python -m lc_speckle_analysis.train_model --config "$config_file" --run-id "parallel_training" >> "$log_file" 2>&1 &
     training_pid=$!
     echo "Training $config_name started with PID: $training_pid"
     
