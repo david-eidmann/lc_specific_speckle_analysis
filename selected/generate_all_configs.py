@@ -178,6 +178,9 @@ optimizer = adam
 layer_sizes = 64,32,16
 n_epochs = 50
 early_stopping_patience = 10
+
+# Early stopping patience (epochs without improvement)
+early_stopping_patience = 10
 """
     
     with open(config_file, 'w', encoding='utf-8') as f:

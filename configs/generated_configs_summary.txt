@@ -3,7 +3,7 @@ LC Speckle Analysis - Generated Configuration Files
 
 Generated 24 configuration files
 Output directory: /mnt/ssddata/users/david/code/lc_specific_speckle_analysis/configs
-Generated on: 2025-12-04 09:46:48
+Generated on: 2025-12-04 09:52:42
 
 Configuration Summary:
 --------------------
